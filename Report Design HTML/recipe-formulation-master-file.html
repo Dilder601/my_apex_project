@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <title>Recipe/Formulation Master File</title>
+        <style>
+            body{font-family: Calibri;font-size: 12px;line-height: 14px;color: #000;}
+            h2,h3,h4,h5,h6,p{margin: 0;}
+            .table{width: 100%;border-collapse: collapse;}
+            .table th,.table td{border: 1px solid #000;text-align: center;}
+            .center{text-align: center !important;}
+            .left{text-align: left !important;}
+            .right{text-align: right !important;}
+            .no-border{border: none !important;}
+            .box{width: 160px;text-align: center;}
+            .box h6{font-size: 12px;border-bottom: 1px solid #000;}
+    
+            @media print{
+                body{
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+                @page {
+                    size: A4;
+                    margin: 0.5in;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app">
+            
+            <h2 class="center" style="margin-bottom: 5px;">Nipro JMI Pharma</h2>
+            <h3 class="center">Recipe FOrmulation Master File</h3>
+
+
+
+            <div style="display: flex;align-items:flex-start;justify-content:space-between; margin-top: 15px;">
+                <table style="width: 45%;">
+                    <tr style="vertical-align:baseline">
+                        <th style="width: 16%;" class="left">Product Code & Name</th>
+                        <td style="width:1%">:</td>
+                        <td style="width:22%">TAB-012 - Anxionil Tablet</td>
+                    </tr>
+                    <tr style="vertical-align:baseline">
+                        <th style="width: 16%;" class="left">Product QTY & UOM</th>
+                        <td style="width:1%">:</td>
+                        <td style="width:22%">5 Pcs</td>
+                    </tr>
+                    <tr style="vertical-align:baseline">
+                        <th style="width: 16%;" class="left">Product Weight & UOM</th>
+                        <td style="width:1%">:</td>
+                        <td style="width:22%">5 Kg</td>
+                    </tr>
+                    <tr style="vertical-align:baseline">
+                        <th style="width: 16%;" class="left">Recipe</th>
+                        <td style="width:1%">:</td>
+                        <td style="width:22%">RP8765</td>
+                    </tr>
+                </table>
+            </div>
+
+
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th colspan="7" class="left no-border">Raw Material</th>
+                    </tr>
+                    <tr>
+                        <th class="center">Code</th>
+                        <th class="left">Name of Materials</th>
+                        <th class="center">Unit</th>
+                        <th class="center">Required QTY/PC</th>
+                        <th class="right">Overage</th>
+                        <th class="right">Total (Including Wastage)</th>
+                        <th class="center">Specification</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="item in 30">
+                        <td class="center">10201</td>
+                        <td class="left">Bromazepam</td>
+                        <td class="center">KG</td>
+                        <td class="center">0.450</td>
+                        <td class="right">0</td>
+                        <td class="right">0.45000</td>
+                        <td class="center">BP</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+
+
+
+        <!-- Vue JS -->
+        <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14 "></script>
+        <script>
+            new Vue({
+                el: '#app'
+            })
+        </script>
+    </body>
+</html>
+
+

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Process || PP116</title>
+    <style>
+        body{font-family: Calibri;font-size: 12px;line-height: 14px;color: #000;}
+        h2,h3,h4,h5,h6,p{margin: 0;}
+        .table{width: 100%;border-collapse: collapse;}
+        .table th,.table td{border: 1px solid #000;text-align: center;}
+        .center{text-align: center !important;}
+        .left{text-align: left !important;}
+        .right{text-align: right !important;}
+        .no-border{border: none !important;}
+        .box{width: 160px;text-align: center;}
+        .box h6{font-size: 12px;border-bottom: 1px solid #000;}
+
+        @media print{
+            body{
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            @page {
+                size: A4;
+                border: 1px solid #dedede;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <!-- Table Section Markup -->
+    <h2 class="center" style="margin-bottom: 5px;">Nipro JMI Pharma</h2>
+    <h3 class="center">Product Process</h3>
+
+
+    <div style="display: flex;align-items:flex-start;justify-content:space-between">
+        <table style="width: 40%;">
+            <tr style="vertical-align:baseline">
+                <th style="width: 16%;" class="left">Product Name</th>
+                <td style="width:1%">:</td>
+                <td style="width:22%">Sample Product Name</td>
+            </tr>
+            <tr style="vertical-align:baseline">
+                <th style="width: 16%;" class="left">Batch Category Name</th>
+                <td style="width:1%">:</td>
+                <td style="width:22%">Sample Cat. Name</td>
+            </tr>
+            <tr style="vertical-align:baseline">
+                <th style="width: 16%;" class="left">Process Type Name</th>
+                <td style="width:1%">:</td>
+                <td style="width:22%">Sample Type Name</td>
+            </tr>
+        </table>
+    </div>
+
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Process Name</th>
+                <th>Sub Process Name</th>
+                <th>WIP Stage Name</th>
+                <th>IPQC Required</th>
+                <th>QC Required</th>
+                <th>Reconciliation Required</th>
+                <th>Total Process Time</th>
+                <th>Asset Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="item in 10">
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td class="left">
+                    <p>1. sample data</p>
+                    <p>2. sample data</p>
+                    <p>3. sample data</p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    
+    <div style="display: flex;align-items:flex-start;justify-content:space-between;margin-top: 30px;">
+        <div class="box">
+            <h6>Prepared By</h6>
+            <p>Rashidul Hasan Sadik</p>
+            <p>Software Engineer</p>
+            <p>11-DEC-2022</p>
+        </div>
+        <div class="box">
+            <h6>Checked By</h6>
+            <p>Rashidul Hasan Sadik</p>
+            <p>Software Engineer</p>
+            <p>11-DEC-2022</p>
+        </div>
+        <div class="box">
+            <h6>Verified By</h6>
+            <p>Rashidul Hasan Sadik</p>
+            <p>Software Engineer</p>
+            <p>11-DEC-2022</p>
+        </div>
+        <div class="box">
+            <h6>Approved By</h6>
+            <p>Rashidul Hasan Sadik</p>
+            <p>Software Engineer</p>
+            <p>11-DEC-2022</p>
+        </div>
+    </div>
+    <!-- End Table Section Markup -->
+</div>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14 "></script>
+<script>
+    new Vue({
+        el: '#app'
+    })
+</script>
+</body>
+</html>

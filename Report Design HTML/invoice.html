@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice</title>
+    <style>
+        body {
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .header h2 {
+            font-size: 16px;
+            font-weight: normal;
+        }
+
+        .invoice-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .invoice-info p {
+            margin: 0;
+        }
+
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .invoice-table th, .invoice-table td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .invoice-table th {
+            background-color: #f2f2f2;
+        }
+
+        .invoice-table td {
+            border-bottom: 1px solid #ddd;
+        }
+
+        .total {
+            text-align: right;
+        }
+
+        .total p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Janata Pharmacy</h1>
+            <h2>247 New York Street, NY, Tejgaon Industrial Area, Dhaka - 1750.</h2>
+            <h2>Janata Pharmacy</h2>
+        </div>
+        <hr>
+        <div class="invoice-info">
+            <div>
+                <p>Sales Id: 1234</p>
+                <p>Date: 10/12/2023</p>
+                <p>Branch: Dhaka</p>
+            </div>
+            <div>
+                <p>Client Name: Md Dilder Hossain</p>
+                <p>Payment Type: Wire Transfer</p>
+                <p>TRX ID: 7587dfCSef444</p>
+            </div>
+        </div>
+        <div class="header">
+            <h2> Product Details  </h2>
+        </div>
+        <div class="invoice-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">Description</th>
+                        <th style="width: 15%;">Quantity</th>
+                        <th style="width: 20%;">Unit Price</th>
+                        <th style="width: 25%;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Item 1</td>
+                        <td>2</td>
+                        <td>$50.00</td>
+                        <td>$100.00</td>
+                    </tr>
+                    <tr>
+                        <td>Item 1</td>
+                        <td>2</td>
+                        <td>$50.00</td>
+                        <td>$100.00</td>
+                    </tr>
+                    <tr>
+                        <td>Item 1</td>
+                        <td>2</td>
+                        <td>$50.00</td>
+                        <td>$100.00</td>
+                    </tr>
+                    <tr>
+                        <td>Item 1</td>
+                        <td>2</td>
+                        <td>$50.00</td>
+                        <td>$100.00</td>
+                    </tr>
+                    <tr>
+                        <td>Item 1</td>
+                        <td>2</td>
+                        <td>$50.00</td>
+                        <td>$100.00</td>
+                    </tr>
+                    <!-- Repeat for more items -->
+                    <tr>
+                        <td colspan="2"></td>
+                        <td  class="total">Subtotal</td>
+                        <td>$100.00</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"></td>
+                        <td class="total">Discount(%)</td>
+                        <td>51%</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"></td>
+                        <td class="total">Discount(tk)</td>
+                        <td>$100.00</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"></td>
+                        <td class="total">Exchange Amount</td>
+                        <td>$100.00</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"></td>
+                        <td class="total">Adjustment</td>
+                        <td>$100.00</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"></td>
+                        <td class="total">Net total</td>
+                        <td>$100.00</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"></td>
+                        <td class="total">Cash Received</td>
+                        <td>$100.00</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"></td>
+                        <td class="total">Current Due</td>
+                        <td>$100.00</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"></td>
+                        <td class="total">Tax (10%)</td>
+                        <td>$10.00</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"></td>
+                        <td class="total">Total</td>
+                        <td>$110.00</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

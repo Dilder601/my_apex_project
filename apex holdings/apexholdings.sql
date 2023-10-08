@@ -1,0 +1,381 @@
+/* Formatted on 10/1/2023 5:12:07 PM (QP5 v5.365) */
+CREATE TABLE "COMPANY_INFO"
+(
+    "COMPANY_CD"        VARCHAR2 (20),
+    "COMPANY_NAME"      VARCHAR2 (300) NOT NULL ENABLE,
+    "COMPANY_ADD"       VARCHAR2 (400),
+    "COMPANY_OPHONE"    VARCHAR2 (100),
+    "COMPANY_EMAIL"     VARCHAR2 (100),
+    "COMPANY_WEB"       VARCHAR2 (100)
+);
+/
+
+CREATE TABLE "HR_DEPARTMENTS"
+(
+    "DEPT_ID"      NUMBER,
+    "DEPT_NAME"    VARCHAR2 (200),
+    CONSTRAINT "PK_HR_DEPARTMENTS" PRIMARY KEY ("DEPT_ID") USING INDEX ENABLE,
+    CONSTRAINT "UC_HR_DEPARTMENTS" UNIQUE ("DEPT_NAME") USING INDEX ENABLE
+);
+/
+
+CREATE TABLE "HR_EMPLOYEES"
+(
+    "EMP_ID"        NUMBER,
+    "FIRST_NAME"    VARCHAR2 (100),
+    "LAST_NAME"     VARCHAR2 (100) NOT NULL ENABLE,
+    "EMAIL"         VARCHAR2 (100),
+    "HIRE_DATE"     DATE NOT NULL ENABLE,
+    "SALARY"        NUMBER NOT NULL ENABLE,
+    "PHOTO"         BLOB,
+    "DEPT_ID"       NUMBER,
+    CONSTRAINT "PK_HR_EMPLOYEES" PRIMARY KEY ("EMP_ID") USING INDEX ENABLE,
+    CONSTRAINT "UC_HR_EMPLOYEES" UNIQUE ("EMAIL") USING INDEX ENABLE
+);
+
+ALTER TABLE "HR_EMPLOYEES"
+    ADD CONSTRAINT "FK_HR_EMPLOYEES" FOREIGN KEY ("DEPT_ID")
+            REFERENCES "HR_DEPARTMENTS" ("DEPT_ID")
+            ENABLE;
+
+CREATE OR REPLACE  TRIGGER "T_SALARY_AUDIT"
+    BEFORE UPDATE OF SALARY
+    ON HR_EMPLOYEES
+    FOR EACH ROW
+
+DECLARE
+    V_USERINFO   VARCHAR2 (200);
+BEGIN
+    /*
+    SELECT 'SID: '||sys_context('USERENV','SESSIONID')||', OSUSER : '||sys_context('USERENV','OS_USER')||', MACHINE : '||sys_context('USERENV','TERMINAL')
+      ||' , TERMINAL : '||sys_context('USERENV','HOST')||', IP ADDRESS : '||sys_context('USERENV','IP_ADDRESS') USERINFO
+    INTO v_userinfo
+    FROM DUAL;
+    */
+    INSERT INTO SALARY_AUDIT (EMP_ID,
+                              DEPT_ID,
+                              SALARY,
+                              UPDATE_USERPC,
+                              UPDATE_DATE)
+         VALUES (:OLD.EMP_ID,
+                 :OLD.DEPT_ID,
+                 :OLD.SALARY,
+                 V_USERINFO,
+                 SYSDATE);
+END;
+/
+
+ALTER TRIGGER "T_SALARY_AUDIT"
+    ENABLE;
+/
+
+
+CREATE TABLE "SALARY_AUDIT"
+(
+    "EMP_ID"           NUMBER,
+    "DEPT_ID"          NUMBER,
+    "SALARY"           NUMBER NOT NULL ENABLE,
+    "UPDATE_USERPC"    VARCHAR2 (100),
+    "UPDATE_DATE"      DATE
+);
+
+ALTER TABLE "SALARY_AUDIT"
+    ADD CONSTRAINT "FK_EMPID_SALARY_AUDIT" FOREIGN KEY ("EMP_ID")
+            REFERENCES "HR_EMPLOYEES" ("EMP_ID")
+            ENABLE;
+/
+
+CREATE TABLE "SHOW_DATA"
+(
+    "DATE_DATA"         DATE,
+    "COUNTRY"           VARCHAR2 (50),
+    "PRICE"             NUMBER,
+    "SIZE_01"           NUMBER,
+    "QUANTITY_01"       NUMBER,
+    "SIZE_02"           NUMBER,
+    "QUANTITY_02"       NUMBER,
+    "SIZE_03"           NUMBER,
+    "QUANTITY_03"       NUMBER,
+    "SIZE_04"           NUMBER,
+    "QUANTITY_04"       NUMBER,
+    "SIZE_05"           NUMBER,
+    "QUANTITY_05"       NUMBER,
+    "SIZE_06"           NUMBER,
+    "QUANTITY_06"       NUMBER,
+    "TOTAL_QUANTITY"    NUMBER
+);
+/
+
+
+  CREATE OR REPLACE FORCE  VIEW "V_HR_EMPLOYEES" ("EMP_ID", "FIRST_NAME", "LAST_NAME", "FULL_NAME", "EMAIL", "HIRE_DATE", "SALARY", "DEPT_ID", "DEPT_NAME") AS 
+  SELECT E.EMP_ID, E.FIRST_NAME, E.LAST_NAME, E.FIRST_NAME||' '|| E.LAST_NAME FULL_NAME, 
+            E.EMAIL, E.HIRE_DATE, E.SALARY, E.DEPT_ID, D.DEPT_NAME
+    FROM HR_EMPLOYEES E, HR_DEPARTMENTS D
+    WHERE E.DEPT_ID = D.DEPT_ID (+);
+    /
+
+
+CREATE OR REPLACE FUNCTION F_PKNO (P_TAB           VARCHAR2,
+                                   P_COL           VARCHAR2,
+                                   P_WHERECLAUSE   VARCHAR2 DEFAULT '1=1',
+                                   P_STARTWITH     NUMBER DEFAULT 1)
+    RETURN NUMBER
+IS
+    RET_VAL   NUMBER;
+BEGIN
+    EXECUTE IMMEDIATE   'SELECT NVL(max('
+                     || P_COL
+                     || ') + 1,'
+                     || P_STARTWITH
+                     || ') FROM '
+                     || P_TAB
+                     || ' WHERE '
+                     || P_WHERECLAUSE
+        INTO RET_VAL;
+
+    RETURN RET_VAL;
+EXCEPTION
+    WHEN OTHERS
+    THEN
+        RETURN 0;
+END;
+/
+
+
+
+SET DEFINE OFF;
+Insert into COMPANY_INFO
+   (COMPANY_CD, COMPANY_NAME, COMPANY_ADD, COMPANY_OPHONE, COMPANY_EMAIL, 
+    COMPANY_WEB)
+ Values
+   ('1', 'Apex Holdings Limited', '8th-13th Floor, Shanta Skymark, 18 Gulshan Ave, Dhaka 1212', '02-9883358', NULL, 
+    NULL);
+COMMIT;
+/
+
+
+SET DEFINE OFF;
+Insert into HR_DEPARTMENTS
+   (DEPT_ID, DEPT_NAME)
+ Values
+   (6, 'VAT');
+Insert into HR_DEPARTMENTS
+   (DEPT_ID, DEPT_NAME)
+ Values
+   (1, 'HR & Admin');
+Insert into HR_DEPARTMENTS
+   (DEPT_ID, DEPT_NAME)
+ Values
+   (2, 'Accounts');
+Insert into HR_DEPARTMENTS
+   (DEPT_ID, DEPT_NAME)
+ Values
+   (3, 'Marketing');
+Insert into HR_DEPARTMENTS
+   (DEPT_ID, DEPT_NAME)
+ Values
+   (5, 'Procurement');
+Insert into HR_DEPARTMENTS
+   (DEPT_ID, DEPT_NAME)
+ Values
+   (7, 'IT');
+Insert into HR_DEPARTMENTS
+   (DEPT_ID, DEPT_NAME)
+ Values
+   (4, 'Sales');
+COMMIT;
+/
+
+SET DEFINE OFF;
+Insert into HR_EMPLOYEES
+   (EMP_ID, FIRST_NAME, LAST_NAME, EMAIL, HIRE_DATE, 
+    SALARY, DEPT_ID)
+ Values
+   (4, 'Kawsar Ahmed', 'Sarker', 'sarkeresh@gmail.com', TO_DATE('8/3/2021', 'MM/DD/YYYY'), 
+    50000, 7);
+Insert into HR_EMPLOYEES
+   (EMP_ID, FIRST_NAME, LAST_NAME, EMAIL, HIRE_DATE, 
+    SALARY, DEPT_ID)
+ Values
+   (2, 'Md. Ruhul Amin', 'Bosunia', 'alshairfahim@gmail.com', TO_DATE('9/2/2021', 'MM/DD/YYYY'), 
+    75000, 1);
+Insert into HR_EMPLOYEES
+   (EMP_ID, FIRST_NAME, LAST_NAME, EMAIL, HIRE_DATE, 
+    SALARY, DEPT_ID)
+ Values
+   (1, 'Mohammad', 'Osman Ghani', 'abir.0066@gmail.com', TO_DATE('9/1/2018', 'MM/DD/YYYY'), 
+    80000, 1);
+Insert into HR_EMPLOYEES
+   (EMP_ID, FIRST_NAME, LAST_NAME, EMAIL, HIRE_DATE, 
+    SALARY, DEPT_ID)
+ Values
+   (3, 'Md. Fazle Azim', 'Chowdhury', 'armanshakil05@gmail.com', TO_DATE('9/1/2017', 'MM/DD/YYYY'), 
+    94000, 2);
+Insert into HR_EMPLOYEES
+   (EMP_ID, FIRST_NAME, LAST_NAME, EMAIL, HIRE_DATE, 
+    SALARY, DEPT_ID)
+ Values
+   (5, 'M. H. Mehedi', 'Hasan', 'mhmehedi270@gmail.com', TO_DATE('9/1/2022', 'MM/DD/YYYY'), 
+    45000, 7);
+COMMIT;
+/
+
+
+SET DEFINE OFF;
+Insert into SALARY_AUDIT
+   (EMP_ID, DEPT_ID, SALARY, UPDATE_USERPC, UPDATE_DATE)
+ Values
+   (2, 1, 65000, NULL, TO_DATE('9/20/2022', 'MM/DD/YYYY'));
+Insert into SALARY_AUDIT
+   (EMP_ID, DEPT_ID, SALARY, UPDATE_USERPC, UPDATE_DATE)
+ Values
+   (1, 1, 70000, NULL, TO_DATE('9/20/2022', 'MM/DD/YYYY'));
+Insert into SALARY_AUDIT
+   (EMP_ID, DEPT_ID, SALARY, UPDATE_USERPC, UPDATE_DATE)
+ Values
+   (3, 2, 90000, NULL, TO_DATE('9/20/2023 10:10:23 AM', 'MM/DD/YYYY HH:MI:SS AM'));
+Insert into SALARY_AUDIT
+   (EMP_ID, DEPT_ID, SALARY, UPDATE_USERPC, UPDATE_DATE)
+ Values
+   (4, 7, 48000, NULL, TO_DATE('9/20/2023 10:10:23 AM', 'MM/DD/YYYY HH:MI:SS AM'));
+Insert into SALARY_AUDIT
+   (EMP_ID, DEPT_ID, SALARY, UPDATE_USERPC, UPDATE_DATE)
+ Values
+   (5, 7, 40000, NULL, TO_DATE('9/20/2023 10:10:23 AM', 'MM/DD/YYYY HH:MI:SS AM'));
+Insert into SALARY_AUDIT
+   (EMP_ID, DEPT_ID, SALARY, UPDATE_USERPC, UPDATE_DATE)
+ Values
+   (2, 1, 70000, NULL, TO_DATE('9/20/2023', 'MM/DD/YYYY'));
+Insert into SALARY_AUDIT
+   (EMP_ID, DEPT_ID, SALARY, UPDATE_USERPC, UPDATE_DATE)
+ Values
+   (1, 1, 75000, NULL, TO_DATE('9/20/2023 10:10:58 AM', 'MM/DD/YYYY HH:MI:SS AM'));
+COMMIT;
+/
+
+SET DEFINE OFF;
+Insert into SHOW_DATA
+   (DATE_DATA, COUNTRY, PRICE, SIZE_01, QUANTITY_01, 
+    SIZE_02, QUANTITY_02, SIZE_03, QUANTITY_03, SIZE_04, 
+    QUANTITY_04, SIZE_05, QUANTITY_05, SIZE_06, QUANTITY_06, 
+    TOTAL_QUANTITY)
+ Values
+   (TO_DATE('8/14/0023', 'MM/DD/YYYY'), 'LH', 0.77, 44, 0, 
+    35, 35, 64, 61, 62, 
+    0, 68, 0, 74, 0, 
+    96);
+Insert into SHOW_DATA
+   (DATE_DATA, COUNTRY, PRICE, SIZE_01, QUANTITY_01, 
+    SIZE_02, QUANTITY_02, SIZE_03, QUANTITY_03, SIZE_04, 
+    QUANTITY_04, SIZE_05, QUANTITY_05, SIZE_06, QUANTITY_06, 
+    TOTAL_QUANTITY)
+ Values
+   (TO_DATE('8/14/0023', 'MM/DD/YYYY'), 'DR', 0.77, 44, 9, 
+    35, 35, 64, 64, 62, 
+    0, 68, 0, 74, 0, 
+    108);
+Insert into SHOW_DATA
+   (DATE_DATA, COUNTRY, PRICE, SIZE_01, QUANTITY_01, 
+    SIZE_02, QUANTITY_02, SIZE_03, QUANTITY_03, SIZE_04, 
+    QUANTITY_04, SIZE_05, QUANTITY_05, SIZE_06, QUANTITY_06, 
+    TOTAL_QUANTITY)
+ Values
+   (TO_DATE('8/14/0023', 'MM/DD/YYYY'), 'OD', 0.73, 44, 12, 
+    35, 4, 64, 0, 62, 
+    0, 68, 0, 74, 0, 
+    16);
+Insert into SHOW_DATA
+   (DATE_DATA, COUNTRY, PRICE, SIZE_01, QUANTITY_01, 
+    SIZE_02, QUANTITY_02, SIZE_03, QUANTITY_03, SIZE_04, 
+    QUANTITY_04, SIZE_05, QUANTITY_05, SIZE_06, QUANTITY_06, 
+    TOTAL_QUANTITY)
+ Values
+   (TO_DATE('8/14/0023', 'MM/DD/YYYY'), 'OE', 0.77, 44, 0, 
+    35, 59, 64, 111, 62, 
+    0, 68, 0, 74, 0, 
+    170);
+Insert into SHOW_DATA
+   (DATE_DATA, COUNTRY, PRICE, SIZE_01, QUANTITY_01, 
+    SIZE_02, QUANTITY_02, SIZE_03, QUANTITY_03, SIZE_04, 
+    QUANTITY_04, SIZE_05, QUANTITY_05, SIZE_06, QUANTITY_06, 
+    TOTAL_QUANTITY)
+ Values
+   (TO_DATE('8/14/0023', 'MM/DD/YYYY'), 'OF', 0.77, 44, 199, 
+    35, 485, 64, 478, 62, 
+    0, 68, 0, 74, 0, 
+    1162);
+Insert into SHOW_DATA
+   (DATE_DATA, COUNTRY, PRICE, SIZE_01, QUANTITY_01, 
+    SIZE_02, QUANTITY_02, SIZE_03, QUANTITY_03, SIZE_04, 
+    QUANTITY_04, SIZE_05, QUANTITY_05, SIZE_06, QUANTITY_06, 
+    TOTAL_QUANTITY)
+ Values
+   (TO_DATE('8/14/0023', 'MM/DD/YYYY'), 'OG', 0.77, 44, 11, 
+    35, 36, 64, 44, 62, 
+    0, 68, 0, 74, 0, 
+    91);
+Insert into SHOW_DATA
+   (DATE_DATA, COUNTRY, PRICE, SIZE_01, QUANTITY_01, 
+    SIZE_02, QUANTITY_02, SIZE_03, QUANTITY_03, SIZE_04, 
+    QUANTITY_04, SIZE_05, QUANTITY_05, SIZE_06, QUANTITY_06, 
+    TOTAL_QUANTITY)
+ Values
+   (TO_DATE('8/14/0023', 'MM/DD/YYYY'), 'OT', 0.77, 44, 9, 
+    35, 15, 64, 25, 62, 
+    8, 68, 6, 74, 1, 
+    64);
+Insert into SHOW_DATA
+   (DATE_DATA, COUNTRY, PRICE, SIZE_01, QUANTITY_01, 
+    SIZE_02, QUANTITY_02, SIZE_03, QUANTITY_03, SIZE_04, 
+    QUANTITY_04, SIZE_05, QUANTITY_05, SIZE_06, QUANTITY_06, 
+    TOTAL_QUANTITY)
+ Values
+   (TO_DATE('8/14/0023', 'MM/DD/YYYY'), 'OU', 0.77, 44, 48, 
+    35, 0, 64, 97, 62, 
+    36, 68, 0, 74, 0, 
+    181);
+Insert into SHOW_DATA
+   (DATE_DATA, COUNTRY, PRICE, SIZE_01, QUANTITY_01, 
+    SIZE_02, QUANTITY_02, SIZE_03, QUANTITY_03, SIZE_04, 
+    QUANTITY_04, SIZE_05, QUANTITY_05, SIZE_06, QUANTITY_06, 
+    TOTAL_QUANTITY)
+ Values
+   (TO_DATE('8/14/0023', 'MM/DD/YYYY'), 'SW', 0.77, 44, 17, 
+    35, 50, 64, 18, 62, 
+    0, 68, 0, 74, 0, 
+    85);
+Insert into SHOW_DATA
+   (DATE_DATA, COUNTRY, PRICE, SIZE_01, QUANTITY_01, 
+    SIZE_02, QUANTITY_02, SIZE_03, QUANTITY_03, SIZE_04, 
+    QUANTITY_04, SIZE_05, QUANTITY_05, SIZE_06, QUANTITY_06, 
+    TOTAL_QUANTITY)
+ Values
+   (TO_DATE('8/15/0023', 'MM/DD/YYYY'), 'DR', 0.77, 44, 9, 
+    35, 35, 64, 64, 62, 
+    0, 68, 34, 74, 0, 
+    108);
+Insert into SHOW_DATA
+   (DATE_DATA, COUNTRY, PRICE, SIZE_01, QUANTITY_01, 
+    SIZE_02, QUANTITY_02, SIZE_03, QUANTITY_03, SIZE_04, 
+    QUANTITY_04, SIZE_05, QUANTITY_05, SIZE_06, QUANTITY_06, 
+    TOTAL_QUANTITY)
+ Values
+   (TO_DATE('8/15/0023', 'MM/DD/YYYY'), 'LH', 0.77, 44, 0, 
+    35, 35, 64, 61, 62, 
+    30, 68, 0, 74, 3, 
+    96);
+Insert into SHOW_DATA
+   (DATE_DATA, COUNTRY, PRICE, SIZE_01, QUANTITY_01, 
+    SIZE_02, QUANTITY_02, SIZE_03, QUANTITY_03, SIZE_04, 
+    QUANTITY_04, SIZE_05, QUANTITY_05, SIZE_06, QUANTITY_06, 
+    TOTAL_QUANTITY)
+ Values
+   (TO_DATE('8/15/0023', 'MM/DD/YYYY'), 'OD', 0.73, 44, 12, 
+    35, 4, 64, 0, 62, 
+    0, 68, 12, 74, 0, 
+    16);
+COMMIT;
+/
+
+
+

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finished Products Transfer Note || PP003</title>
+    <style>
+        body{font-family: Calibri;font-size: 12px;line-height: 14px;color: #000;}
+        h2,h3,h4,h5,h6,p{margin: 0;}
+        .table{width: 100%;border-collapse: collapse;}
+        .table th,.table td{border: 1px solid #000;text-align: center;}
+        .center{text-align: center !important;}
+        .left{text-align: left !important;}
+        .right{text-align: right !important;}
+        .no-border{border: none !important;}
+        .box{width: 160px;text-align: center;}
+        .box h6{font-size: 12px;border-bottom: 1px solid #000;}
+
+        @media print{
+            body{
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            @page {
+                size: A4;
+                margin: 0.5in;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <!-- Table Section Markup -->
+    <h2 class="center" style="margin-bottom: 5px;">Nipro JMI Pharma</h2>
+    <h3 class="center">Finished Products Transfer Note</h3>
+
+
+    <div style="display: flex;align-items:flex-start;justify-content:space-between; margin-top: 15px;">
+        <table style="width: 35%;">
+            <tr style="vertical-align:baseline">
+                <th style="width: 16%;" class="left">Product Name</th>
+                <td style="width:1%">:</td>
+                <td style="width:22%">Product Name Here</td>
+            </tr>
+            <tr style="vertical-align:baseline">
+                <th style="width: 16%;" class="left">Department</th>
+                <td style="width:1%">:</td>
+                <td style="width:22%">Department Here</td>
+            </tr>
+            <tr style="vertical-align:baseline">
+                <th style="width: 16%;" class="left">Section</th>
+                <td style="width:1%">:</td>
+                <td style="width:22%">Section Here</td>
+            </tr>
+            <tr style="vertical-align:baseline">
+                <th style="width: 16%;" class="left">Transfer Note No</th>
+                <td style="width:1%">:</td>
+                <td style="width:22%">2365</td>
+            </tr>
+        </table>
+        <table style="width: 35%;">
+            <tr>
+                <th style="width: 10%;" class="left">Batch No</th>
+                <td style="width:1%">:</td>
+                <td style="width:25%">00253</td>
+            </tr>
+            <tr>
+                <th style="width: 10%;" class="left">Batch Size</th>
+                <td style="width:1%">:</td>
+                <td style="width:25%">25</td>
+            </tr>
+            <tr>
+                <th style="width: 10%;" class="left">MFG Date</th>
+                <td style="width:1%">:</td>
+                <td style="width:25%">10/10/22</td>
+            </tr>
+            <tr>
+                <th style="width: 10%;" class="left">EXP Date</th>
+                <td style="width:1%">:</td>
+                <td style="width:25%">10/10/26</td>
+            </tr>
+        </table>
+    </div>
+
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th rowspan="2">Date</th>
+                <th rowspan="2">Product Code</th>
+                <th rowspan="2">Pack Size</th>
+                <th colspan="2">No of Outer with Packs</th>
+                <th rowspan="2">Total QTY (Unit Packs)</th>
+                <th rowspan="2">Type of FG</th>
+                <th rowspan="2">Released Status</th>
+            </tr>
+            <tr>
+                <th>Full</th>
+                <th>Loose</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="item in 10">
+                <td>22/11/2022</td>
+                <td>CD9876</td>
+                <td>Null</td>
+                <td>Null</td>
+                <td>Null</td>
+                <td>Null</td>
+                <td>Null</td>
+                <td>Null</td>
+            </tr>
+        </tbody>
+    </table>
+
+    
+    <div style="display: flex;align-items:flex-start;justify-content:space-between;margin-top: 30px;">
+        <div class="box">
+            <h6>Prepared By</h6>
+            <p>Dilder Hossain Mithu</p>
+            <p>Software Engineer</p>
+            <p>11-DEC-2022</p>
+        </div>
+        <div class="box">
+            <h6>Checked By</h6>
+            <p>Dilder Hossain Mithu</p>
+            <p>Software Engineer</p>
+            <p>11-DEC-2022</p>
+        </div>
+        <div class="box">
+            <h6>Verified By</h6>
+            <p>Dilder Hossain Mithu</p>
+            <p>Software Engineer</p>
+            <p>11-DEC-2022</p>
+        </div>
+        <div class="box">
+            <h6>Approved By</h6>
+            <p>Dilder Hossain Mithu</p>
+            <p>Software Engineer</p>
+            <p>11-DEC-2022</p>
+        </div>
+    </div>
+    <!-- End Table Section Markup -->
+</div>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14 "></script>
+<script>
+    new Vue({
+        el: '#app'
+    })
+</script>
+</body>
+</html>

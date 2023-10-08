@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Requisition for Batch Document</title>
+    <style>
+        body {
+            font-family: Calibri;
+            font-size: 12px;
+            line-height: 14px;
+            color: #000;
+        }
+
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        p {
+            margin: 0;
+        }
+
+        .logo {
+            height: 35px;
+            left: 15px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            border: 1px solid #000;
+            text-align: center;
+            padding: 0;
+        }
+
+        .text-center {
+            text-align: center !important;
+        }
+
+        .text-left {
+            text-align: left !important;
+        }
+
+        .text-right {
+            text-align: right !important;
+        }
+
+        .border-none {
+            border: none !important;
+        }
+
+        .main-table p:not(:last-child) {
+            border-bottom: 1px solid #000;
+        }
+
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            @page {
+                size: A4 landscape;
+                border: 1px solid #dedede;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <table style="width: 100%;">
+            <thead>
+                <tr>
+                    <th>
+                        <div style="display: flex; align-items: flex-start;justify-content: space-between;">
+                            <div class="text-left">
+                                <img src="./logo.png" alt="logo here" class="logo">
+                                <p style="margin-top: 5px;font-weight: 400;">Appendix 9.3: Requisition for Batch
+                                    Document
+                                </p>
+                                <p style="font-weight: 400;">Doc. No.: 08-6.0-0.0-0005(QAD); Revision
+                                    No.: 02</p>
+                            </div>
+                            <div class="report-title">
+                                <h2 style="font-size: 30px;font-weight: bold;">NIPRO JMI Pharma Ltd.</h2>
+                                <h6 style="font-size: 11px;margin-top: 7px;font-weight: 700;">First Japanese Joint
+                                    Venture Pharmaceuticals in Bangladesh</h6>
+                            </div>
+                            <span style="margin: 0;text-align: left;font-weight: normal;font-size: 10px;">
+                                <strong style="font-size: 12px;">Corporate Office:</strong> <br>
+                                Unique Heights, Level-6, 117, Kazi Nazrul <br>
+                                Islam Avenue, Ramna, Dhaka-1217 <br>
+                                <strong style="font-size: 12px;">Factory:</strong> <br>
+                                Rajendrapur, Chauddagram, Cumilla, <br> Bangladesh
+                            </span>
+                        </div>
+                    </th>
+                </tr>
+                <tr>
+                    <th>
+                        <h2 style="margin-bottom: 5px;font-size: 18px;"><u>Requisition for Batch Document</u></h2>
+                    </th>
+                </tr>
+                <tr>
+                    <td>
+                        <div>
+                            <table style="width: 100%;">
+                                <tr>
+                                    <td class="text-left">Date: <u>26-07-2023</u></td>
+                                    <td class="text-right">Time: 14:00</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-left">From: <u>Production</u></td>
+                                    <td class="text-right">Time: 14:00</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-left">To: <b>Quality Compliance Department</b></td>
+                                    <td class="text-right">Ref. No.: BPR8732645</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <table class="table main-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 6%;">SL No.</th>
+                                    <th style="width: 15%;">Document Type</th>
+                                    <th style="width: 30%;">Product Name</th>
+                                    <th style="width: 10%;">No. of Batch</th>
+                                    <th style="width: 10%;">Batch No.</th>
+                                    <th style="width: 29%;">Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>01</td>
+                                    <td rowspan="5">BPR</td>
+                                    <td>Meroxin 1gm IV inj.</td>
+                                    <td>4335</td>
+                                    <td>
+                                        <p>B-1</p>
+                                        <p>B-2</p>
+                                        <p>B-3</p>
+                                    </td>
+                                    <td>
+                                        <p>Remaks text</p>
+                                        <p>Remaks text</p>
+                                        <p>Remaks text</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>02</td>
+                                    <td>Meroxin 1gm IV inj.</td>
+                                    <td>4335</td>
+                                    <td>02</td>
+                                    <td>Remaks text</td>
+                                </tr>
+                                <tr>
+                                    <td>03</td>
+                                    <td>Meroxin 1gm IV inj.</td>
+                                    <td>4335</td>
+                                    <td>02</td>
+                                    <td>Remaks text</td>
+                                </tr>
+                                <tr>
+                                    <td>04</td>
+                                    <td>Meroxin 1gm IV inj.</td>
+                                    <td>4335</td>
+                                    <td>02</td>
+                                    <td>Remaks text</td>
+                                </tr>
+                                <tr>
+                                    <td>05</td>
+                                    <td>Meroxin 1gm IV inj.</td>
+                                    <td>4335</td>
+                                    <td>02</td>
+                                    <td>Remaks text</td>
+                                </tr>
+                                <tr>
+                                    <td>06</td>
+                                    <td>BPR</td>
+                                    <td>Meroxin 1gm IV inj.</td>
+                                    <td>4335</td>
+                                    <td>
+                                        <p>B-1</p>
+                                    </td>
+                                    <td>
+                                        <p>Remaks text</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div style="display: flex;justify-content: space-around;align-items: center;margin-top: 100px;">
+                            <h6 class="text-center"
+                                style="border-top: 1px solid #000;width: 100px; font-size: 12px;font-weight: 700;">
+                                Raised By</h6>
+                            <h6 class="text-center"
+                                style="border-top: 1px solid #000;width: 100px; font-size: 12px;font-weight: 700;">
+                                Checked By</h6>
+                            <h6 class="text-center"
+                                style="border-top: 1px solid #000;width: 100px; font-size: 12px;font-weight: 700;">
+                                Approved By</h6>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+
+
+
+
+
+
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14 "></script>
+    <script>
+        new Vue({
+            el: '#app'
+        })
+    </script>
+</body>
+
+</html>

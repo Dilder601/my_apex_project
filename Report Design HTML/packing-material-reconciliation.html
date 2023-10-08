@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Packing Material Reconciliation || PP016</title>
+    <style>
+        body{font-family: Calibri;font-size: 12px;line-height: 14px;color: #000;}
+        h2,h3,h4,h5,h6,p{margin: 0;}
+        .table{width: 100%;border-collapse: collapse;}
+        .table th,.table td{border: 1px solid #000;text-align: center;}
+        .center{text-align: center !important;}
+        .left{text-align: left !important;}
+        .right{text-align: right !important;}
+        .no-border{border: none !important;}
+        .box{width: 160px;text-align: center;}
+        .box h6{font-size: 12px;border-bottom: 1px solid #000;}
+
+        @media print{
+            body{
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            @page {
+                size: A4 landscape;
+                border: 1px solid #dedede;
+                margin: 0.5in;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <!-- Table Section Markup -->
+    <h2 class="center" style="margin-bottom: 5px;">Nipro JMI Pharma</h2>
+    <h3 class="center">Packing Material Reconciliation</h3>
+
+
+    <div style="display: flex;align-items:flex-start;justify-content:space-between">
+        <table style="width: 45%;">
+            <tr style="vertical-align:baseline">
+                <th style="width: 16%;" class="left">Product Name</th>
+                <td style="width:1%">:</td>
+                <td style="width:22%">Sample Name</td>
+            </tr>
+            <tr style="vertical-align:baseline">
+                <th style="width: 16%;" class="left">Batch No</th>
+                <td style="width:1%">:</td>
+                <td style="width:22%">Sample No</td>
+            </tr>
+            <tr style="vertical-align:baseline">
+                <th style="width: 16%;" class="left">Batch Size</th>
+                <td style="width:1%">:</td>
+                <td style="width:22%">Sample Size</td>
+            </tr>
+        </table>
+    </div>
+
+
+    <table class="table">
+        <thead>
+            <tr>
+                <td class="no-border left" colspan="3"><strong>Reconciliation No:</strong> Sample No</td>
+                <td class="no-border left" colspan="3"><strong>Reconciliation No:</strong> Sample No</td>
+                <td class="no-border left" colspan="3"><strong>Reconciliation No:</strong> Sample No</td>
+                <td class="no-border left" colspan="3"><strong>Reconciliation No:</strong> Sample No</td>
+            </tr>
+            <tr>
+                <th>Product Name</th>
+                <th>GRN No</th>
+                <th>Issue No</th>
+                <th>Req QTY</th>
+                <th>Issue QTY</th>
+                <th>Damage QTY</th>
+                <th>Wastage QTY</th>
+                <th>Reject QTY</th>
+                <th>Ext Reject QTY</th>
+                <th>Return QTY</th>
+                <th>Used QTY</th>
+                <th>Loss(%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="item in 10">
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table class="table" style="margin-top: 30px;">
+        <thead>
+            <tr>
+                <td class="no-border left" colspan="3"><strong>Reconciliation No:</strong> Sample No</td>
+                <td class="no-border left" colspan="3"><strong>Reconciliation No:</strong> Sample No</td>
+                <td class="no-border left" colspan="3"><strong>Reconciliation No:</strong> Sample No</td>
+                <td class="no-border left" colspan="3"><strong>Reconciliation No:</strong> Sample No</td>
+            </tr>
+            <tr>
+                <th>Product Name</th>
+                <th>GRN No</th>
+                <th>Issue No</th>
+                <th>Req QTY</th>
+                <th>Issue QTY</th>
+                <th>Damage QTY</th>
+                <th>Wastage QTY</th>
+                <th>Reject QTY</th>
+                <th>Ext Reject QTY</th>
+                <th>Return QTY</th>
+                <th>Used QTY</th>
+                <th>Loss(%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="item in 10">
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+                <td>sample data</td>
+            </tr>
+        </tbody>
+    </table>
+
+    
+    <div style="display: flex;align-items:flex-start;justify-content:space-between;margin-top: 30px;">
+        <div class="box">
+            <h6>Prepared By</h6>
+            <p>Dilder Hossain Mithu</p>
+            <p>Software Engineer</p>
+            <p>11-DEC-2022</p>
+        </div>
+        <div class="box">
+            <h6>Checked By</h6>
+            <p>Dilder Hossain Mithu</p>
+            <p>Software Engineer</p>
+            <p>11-DEC-2022</p>
+        </div>
+        <div class="box">
+            <h6>Verified By</h6>
+            <p>Dilder Hossain Mithu</p>
+            <p>Software Engineer</p>
+            <p>11-DEC-2022</p>
+        </div>
+        <div class="box">
+            <h6>Approved By</h6>
+            <p>Dilder Hossain Mithu</p>
+            <p>Software Engineer</p>
+            <p>11-DEC-2022</p>
+        </div>
+    </div>
+    <!-- End Table Section Markup -->
+</div>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14 "></script>
+<script>
+    new Vue({
+        el: '#app'
+    })
+</script>
+</body>
+</html>

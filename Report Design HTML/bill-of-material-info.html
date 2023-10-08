@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill of Material Info || PP004</title>
+    <style>
+        body{font-family: Calibri;font-size: 12px;line-height: 14px;color: #000;}
+        h2,h3,h4,h5,h6,p{margin: 0;}
+        p{font-size: 12px;}
+        table{font-size: 12px;line-height: 14px;}
+        .table{width: 100%;border-collapse: collapse;}
+        .table th,.table td{border: 1px solid #000;text-align: center;}
+        .center{text-align: center !important;}
+        .left{text-align: left !important;}
+        .right{text-align: right !important;}
+        .no-border{border: none !important;}
+        .box{width: 160px;text-align: center;}
+        .box h6{font-size: 12px;border-bottom: 1px solid #000;}
+
+        @media print{
+            body{
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            @page {
+                size: A4;
+                margin: 0.5in;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <!-- Table Section Markup -->
+    <h2 class="center" style="margin-bottom: 5px;">Nipro JMI Pharma</h2>
+    <h3 class="center">Bill of Material Info</h3>
+
+
+    <div style="display: flex;align-items:flex-start;justify-content:space-between">
+        <table style="width: 35%;">
+            <tr style="vertical-align:baseline">
+                <th style="width: 16%;" class="left">BOM Type</th>
+                <td style="width:1%">:</td>
+                <td style="width:22%">SUB-BOM</td>
+            </tr>
+            <tr style="vertical-align:baseline">
+                <th style="width: 16%;" class="left">BOM Code</th>
+                <td style="width:1%">:</td>
+                <td style="width:22%">NJPL-BOM-22-311</td>
+            </tr>
+            <tr style="vertical-align:baseline">
+                <th style="width: 16%;" class="left">Bulk Product</th>
+                <td style="width:1%">:</td>
+                <td style="width:22%">0601NNT1 - Niproxen250</td>
+            </tr>
+            <tr style="vertical-align:baseline">
+                <th style="width: 16%;" class="left">SFG product</th>
+                <td style="width:1%">:</td>
+                <td style="width:22%">0601NNT1 - Niproxen250</td>
+            </tr>
+            <tr style="vertical-align:baseline">
+                <th style="width: 16%;" class="left">Master product</th>
+                <td style="width:1%">:</td>
+                <td style="width:22%">0601NNT1 - Niproxen250</td>
+            </tr>
+            <tr style="vertical-align:baseline">
+                <th style="width: 16%;" class="left">Batch Info</th>
+                <td style="width:1%">:</td>
+                <td style="width:22%">2211 Pcs</td>
+            </tr>
+            <tr style="vertical-align:baseline">
+                <th style="width: 16%;" class="left">Batch Weight</th>
+                <td style="width:1%">:</td>
+                <td style="width:22%">2211 Pcs</td>
+            </tr>
+        </table>
+        <table style="width: 35%;">
+            <tr>
+                <th style="width: 10%;" class="left">Theo Batch</th>
+                <td style="width:1%">:</td>
+                <td style="width:25%">2211 Pcs</td>
+            </tr>
+            <tr>
+                <th style="width: 10%;" class="left">STD Batch</th>
+                <td style="width:1%">:</td>
+                <td style="width:25%">2211 Pcs</td>
+            </tr>
+            <tr>
+                <th style="width: 10%;" class="left">API Prod</th>
+                <td style="width:1%">:</td>
+                <td style="width:25%">4400138-Calitrol</td>
+            </tr>
+            <tr>
+                <th style="width: 10%;" class="left">API Prod UOM</th>
+                <td style="width:1%">:</td>
+                <td style="width:25%">2211 Kg</td>
+            </tr>
+            <tr>
+                <th style="width: 10%;" class="left">Unit Volume</th>
+                <td style="width:1%">:</td>
+                <td style="width:25%">2211 Kg</td>
+            </tr>
+            <tr>
+                <th style="width: 10%;" class="left">Unit Weight</th>
+                <td style="width:1%">:</td>
+                <td style="width:25%">2211 Kg</td>
+            </tr>
+        </table>
+    </div>
+
+
+    <section style="margin-top: 15px;">
+        <h5 style="padding-left: 2px;font-size: 12px;">BOM Method: BMR</h5>
+        <div style="margin:0 0 15px 30px">
+            <p style="font-size: 12px;font-weight:bold;">Category: Active</p>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Prod Code</th>
+                        <th>Prod Name</th>
+                        <th>Batch QTY</th>
+                        <th>Prod UOM</th>
+                        <th>FG Prod Name</th>
+                        <th>Is Mandatory</th>
+                        <th>Is Must For Quality</th>
+                        <th>STD Potency</th>
+                        <th>Overage(%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="item in 5">
+                        <td>406542</td>
+                        <td class="left">Product Name Here</td>
+                        <td>20</td>
+                        <td>Pair</td>
+                        <td class="left">Niproxen</td>
+                        <td>Yes</td>
+                        <td>No</td>
+                        <td>2212</td>
+                        <td>90</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div style="margin-left: 30px;">
+            <p style="font-size: 12px;font-weight:bold;">Category: Active</p>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Prod Code</th>
+                        <th>Prod Name</th>
+                        <th>Batch QTY</th>
+                        <th>Prod UOM</th>
+                        <th>FG Prod Name</th>
+                        <th>Is Mandatory</th>
+                        <th>Is Must For Quality</th>
+                        <th>STD Potency</th>
+                        <th>Overage(%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="item in 5">
+                        <td>406542</td>
+                        <td class="left">Product Name Here</td>
+                        <td>20</td>
+                        <td>Pair</td>
+                        <td class="left">Niproxen</td>
+                        <td>Yes</td>
+                        <td>No</td>
+                        <td>2212</td>
+                        <td>90</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+
+
+    <section style="margin-top: 15px;">
+        <h5 style="padding-left: 2px; font-size: 12px;">BOM Method: BPR</h5>
+        <div style="margin:0 0 15px 30px">
+            <p style="font-size: 12px;font-weight:bold;">Category: Active</p>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Prod Code</th>
+                        <th>Prod Name</th>
+                        <th>Batch QTY</th>
+                        <th>Prod UOM</th>
+                        <th>FG Prod Name</th>
+                        <th>Is Mandatory</th>
+                        <th>Is Must For Quality</th>
+                        <th>STD Potency</th>
+                        <th>Overage(%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="item in 5">
+                        <td>406542</td>
+                        <td class="left">Product Name Here</td>
+                        <td>20</td>
+                        <td>Pair</td>
+                        <td class="left">Niproxen</td>
+                        <td>Yes</td>
+                        <td>No</td>
+                        <td>2212</td>
+                        <td>90</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div style="margin-left: 30px;">
+            <p style="font-size: 12px;font-weight:bold;">Category: Active</p>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Prod Code</th>
+                        <th>Prod Name</th>
+                        <th>Batch QTY</th>
+                        <th>Prod UOM</th>
+                        <th>FG Prod Name</th>
+                        <th>Is Mandatory</th>
+                        <th>Is Must For Quality</th>
+                        <th>STD Potency</th>
+                        <th>Overage(%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="item in 5">
+                        <td>406542</td>
+                        <td class="left">Product Name Here</td>
+                        <td>20</td>
+                        <td>Pair</td>
+                        <td class="left">Niproxen</td>
+                        <td>Yes</td>
+                        <td>No</td>
+                        <td>2212</td>
+                        <td>90</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+    
+
+    
+    <div style="display: flex;align-items:flex-start;justify-content:space-between;margin-top: 30px;">
+        <div class="box">
+            <h6>Prepared By</h6>
+            <p>Dilder Hossain Mithu</p>
+            <p>Software Engineer</p>
+            <p>11-DEC-2022</p>
+        </div>
+        <div class="box">
+            <h6>Checked By</h6>
+            <p>Dilder Hossain Mithu</p>
+            <p>Software Engineer</p>
+            <p>11-DEC-2022</p>
+        </div>
+        <div class="box">
+            <h6>Verified By</h6>
+            <p>Dilder Hossain Mithu</p>
+            <p>Software Engineer</p>
+            <p>11-DEC-2022</p>
+        </div>
+        <div class="box">
+            <h6>Approved By</h6>
+            <p>Dilder Hossain Mithu</p>
+            <p>Software Engineer</p>
+            <p>11-DEC-2022</p>
+        </div>
+    </div>
+    <!-- End Table Section Markup -->
+</div>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14 "></script>
+<script>
+    new Vue({
+        el: '#app'
+    })
+</script>
+</body>
+</html>
