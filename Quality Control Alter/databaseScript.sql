@@ -479,7 +479,93 @@ END TRG_STYLE_STK;
 
 /
 
+create or replace TYPE GET_MAX_TAB AS TABLE OF GET_MAX
+/
+
+create or replace TYPE GET_MAX AS OBJECT (ID NUMBER, COLNAME VARCHAR2(100), MAXVAL NUMBER)
+/
 
 
+
+create or replace FUNCTION GET_COL_MAX_TAB
+RETURN GET_MAX_TAB
+PIPELINED
+AS
+BEGIN
+
+    FOR I IN (
+                SELECT ADD_SUMM.LINE_NUMBER, DOWN_STS, UNEVEN_SHAP, BROKEN_STS, DIRTY_MARK, OIL_STAIN, HIKING, IMPORPER_TUCK, NEEDLE_MARK_HOLE,
+                        OPEN_SEAM, SKIP_STS, PLEAT, SLV_SHOULDER_UPDOWN, PUCKERING, RAWEDGE, SHADING,  LABEL_ALTER -- UNCUT_THREAD
+                    FROM 
+                    (
+                        SELECT  LINE_NUMBER,  SUM(NVL(DOWN_STS,0)) DOWN_STS, SUM(NVL(UNEVEN_SHAP,0)) UNEVEN_SHAP, SUM(NVL(BROKEN_STS,0)) BROKEN_STS, 
+                                SUM(NVL(DIRTY_MARK,0)) DIRTY_MARK, SUM(NVL(OIL_STAIN,0)) OIL_STAIN , SUM(NVL(HIKING,0)) HIKING,  SUM(NVL(IMPORPER_TUCK,0)) IMPORPER_TUCK, 
+                                SUM(NVL(NEEDLE_MARK_HOLE,0)) NEEDLE_MARK_HOLE,  SUM(NVL(OPEN_SEAM,0)) OPEN_SEAM, SUM(NVL(SKIP_STS,0)) SKIP_STS, SUM(NVL(PLEAT,0)) PLEAT, 
+                                SUM(NVL(SLV_SHOULDER_UPDOWN,0)) SLV_SHOULDER_UPDOWN, SUM(NVL(PUCKERING,0)) PUCKERING, SUM(NVL(RAWEDGE,0)) RAWEDGE,  SUM(NVL(SHADING,0)) SHADING, 
+                                SUM(NVL(UNCUT_THREAD,0)) UNCUT_THREAD, SUM(NVL(OTHERS,0)) OTHERS, SUM(0) LABEL_ALTER
+                        FROM QC_TAB
+                        GROUP BY LINE_NUMBER
+                        ORDER BY LINE_NUMBER ASC
+                    ) ADD_SUMM
+    ) LOOP
+    
+        FOR J IN (
+                    SELECT COLN, VAL 
+                    FROM
+                    (
+                    SELECT A.STR_VALUE COLN, B.STR_VALUE VAL, 
+                    (SELECT MAX (TO_NUMBER (STR_VALUE)) FROM DFN_GET_STRING_SPLITTED ((SELECT SUM(LABEL_ALTER)||','||SUM(DOWN_STS)||','||SUM(UNEVEN_SHAP)||','||SUM(BROKEN_STS)||','||SUM(DIRTY_MARK)||','||SUM(OIL_STAIN)||','||SUM(HIKING)||','||SUM(IMPORPER_TUCK)||','||SUM(NEEDLE_MARK_HOLE)||','||SUM(OPEN_SEAM)||','||SUM(SKIP_STS)||','||SUM(PLEAT) 
+                                                                                            ||','||SUM(SLV_SHOULDER_UPDOWN)||','||SUM(PUCKERING)||','||SUM(RAWEDGE)||','||SUM(SHADING)||','||SUM(UNCUT_THREAD)||','||SUM(OTHERS)
+                                                                                        FROM QC_TAB WHERE LINE_NUMBER = I.LINE_NUMBER),',')) max_val
+                    FROM
+                    (SELECT * FROM DFN_GET_STRING_SPLITTED ('LABEL_ALTER ,DOWN_STS,UNEVEN_SHAP,BROKEN_STS,DIRTY_MARK,OIL_STAIN,HIKING,IMPORPER_TUCK,NEEDLE_MARK_HOLE,OPEN_SEAM,SKIP_STS,PLEAT,SLV_SHOULDER_UPDOWN,PUCKERING,RAWEDGE,SHADING,UNCUT_THREAD,OTHERS',',')) A,
+                    (SELECT * FROM DFN_GET_STRING_SPLITTED ((SELECT SUM(LABEL_ALTER)||','||SUM(DOWN_STS)||','||SUM(UNEVEN_SHAP)||','||SUM(BROKEN_STS)||','||SUM(DIRTY_MARK)||','||SUM(OIL_STAIN)||','||SUM(HIKING)||','||SUM(IMPORPER_TUCK)||','||SUM(NEEDLE_MARK_HOLE)||','
+                                                                    ||SUM(OPEN_SEAM)||','||SUM(SKIP_STS)||','||SUM(PLEAT)||','||SUM(SLV_SHOULDER_UPDOWN)||','||SUM(PUCKERING)||','||SUM(RAWEDGE)||','||SUM(SHADING)||','||SUM(UNCUT_THREAD)||','||SUM(OTHERS)
+                                                            FROM QC_TAB WHERE LINE_NUMBER = I.LINE_NUMBER),',')) B
+                    WHERE A.SRL_NO = B.SRL_NO
+                    ) V
+                    WHERE VAL = MAX_VAL
+        ) LOOP
+        
+            PIPE ROW (GET_MAX (I.LINE_NUMBER, J.COLN, J.VAL));
+        
+        END LOOP;
+    
+    END LOOP;
+
+END;
+/
+
+
+
+
+
+create or replace TYPE SPLITTED_TAB AS TABLE OF SPLITTED
+/
+
+create or replace TYPE SPLITTED AS OBJECT (SRL_NO NUMBER(10), STR_VALUE VARCHAR2(2000))
+/
+
+
+
+
+create or replace FUNCTION DFN_GET_STRING_SPLITTED (PSTRING       VARCHAR2, PSEPARATOR    VARCHAR2)
+RETURN SPLITTED_TAB
+PIPELINED
+IS
+   VSTRING   VARCHAR2 (4000) := REPLACE (PSTRING, PSEPARATOR, '~');
+BEGIN
+   FOR I IN (    SELECT REGEXP_SUBSTR (VSTRING, '[^~]+', 1, LEVEL) VAL, ROWNUM RID
+                   FROM DUAL
+             CONNECT BY REGEXP_SUBSTR (VSTRING, '[^~]+', 1, LEVEL) IS NOT NULL)
+   LOOP
+      PIPE ROW (SPLITTED (I.RID, I.VAL));
+   END LOOP;
+EXCEPTION
+   WHEN OTHERS
+   THEN
+      NULL;
+END DFN_GET_STRING_SPLITTED;
+/
 
 

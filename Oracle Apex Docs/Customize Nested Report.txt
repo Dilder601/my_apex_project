@@ -1,0 +1,68 @@
+To start with, first create a new classic report region with query like "select * from dept".
+
+Add a new derived column of type = Link to that report and set following attributes:
+Link: javascript: void(0);
+Link Text: <i class="fa fa-users" alt="Employees" title="Employees"></i>
+Link Attribute: class="viewEmp" data-deptno="#DEPTNO#"
+
+Add new page item to hold deptno value and call it PX_DEPTNO
+
+Create new classic report region (this will be your nested region) and set query like "select * from emp where deptno = :PX_DEPTNO" and set following attributes:
+Static ID: EMPLOYEES
+Custom Attributes: style="display: none"
+Page Items to Submit: :PX_DEPTNO
+
+In page settings > function and global variable declaration, define new variable gThis as below.
+var gThis;
+
+Create new dynamic action as follow:
+Event: Click
+Selection Type: jQuery Selector
+jQuery Selector: a.viewEmp
+
+Add true action 1 as below:
+Action: Execute JavaScript Code
+Fire on Initialization: No
+Code:
+$('tr.my_custom_row').hide(500, function(){$(this).remove();});
+gThis = $(this.triggeringElement);
+---------------------------
+Add true action 2 as below:
+Action: Set Value
+Set Type: JavaScript Expression
+JavaScript Expression: $(this.triggeringElement).attr("data-deptno")
+Fire on Initialization: No
+--------------------
+Add true action 3 as below:
+Action: Set Value
+Set Type: PL/SQL Expression
+PL/SQL Expression: :PX_DEPTNO
+Item to Submit: PX_DEPTNO
+Fire on Initialization: No
+------------------
+Add true action 4 as below:
+Action: Refresh
+Selection Type: Region
+Region: Employee (Your second region)
+Fire on Initialization: No
+--------------------------------------------
+Create new dynamic action as below:
+Event: After Refresh
+Selection Type: Region
+Region: Employee (Your second region)
+----------------------------------
+Add true action as below:
+Action: Execute JavaScript Code
+Fire on Initialization: No
+JavaScript Code:
+var vThis = gThis;
+var vTRID = $(vThis).attr("data-deptno");
+var vColSpan = $(vThis).closest("tr").find("td").length;
+var vClass = $(vThis).closest("td").attr("class");
+var vTR = $(vThis).closest("tr");
+var vReportHTML = $('#EMPLOYEES').clone();
+vReportHTML = $(vReportHTML).removeAttr("id");
+vReportHTML = $(vReportHTML).css("display", "block");
+var vReportHTMLFinal = $('<div>').append($(vReportHTML)).html();
+$(vTR).after('<tr id="EMPLOYEES_'+vTRID+'" class="my_custom_row" style="display: none;"><td class="'+vClass+'" colspan="'+vColSpan+'" style="padding: 15px;">'+vReportHTMLFinal+'</td></tr>');
+$('tr.my_custom_row').show(500);
