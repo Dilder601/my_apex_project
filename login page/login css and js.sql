@@ -179,7 +179,7 @@ transform: rotate(-20deg);
 
 -- execute when page load:
 window.onload = function(){
-document.querySelector('.cont_principal').className= "cont_principal cont_error_active";  
+document.querySelector('.cont_principal').className+= "cont_error_active";  
   
 }
 
