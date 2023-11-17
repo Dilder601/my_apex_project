@@ -1,0 +1,62 @@
+Database: 
+system admin: sys
+pass:orcl
+
+for hr schema:
+
+COLUMN name FOMAT a20;
+SELET name,con_id, from v$pdbs;
+select name as service_name from v$active_services where con_id = 3;
+
+LISTENER_ORCL =
+  (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 1521))
+
+
+ORACLR_CONNECTION_DATA =
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC1521))
+    )
+    (CONNECT_DATA =
+      (SID = CLRExtProc)
+      (PRESENTATION = RO)
+    )
+  )
+
+ORCL =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = LOCALHOST)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = ORCL)
+    )
+  )
+
+ORCLPDB =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = LOCALHOST)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = orclpdb)
+    )
+  )
+
+ 
+==== ===== ====
+lsnrctl reload
+
+conn: sys as sysdba
+
+
+alter session set container = orclpdb;
+alter pluggable database open;
+alter user hr identified by hr account unlock;
+
+
+then install toad / sql developer:
+
+connect hr 
+
+
+
+

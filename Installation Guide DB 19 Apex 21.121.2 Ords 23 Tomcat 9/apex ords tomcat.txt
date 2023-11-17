@@ -1,0 +1,191 @@
+how to install apex 23.1
+========================
+
+windows + R
+
+> cmd
+
+c:\apex23_1\apex>sqlplus.exe/nolog
+
+conn sys/sys@orcl as sysdba
+
+-- ALTER SYSTEM SET MEMORY_TARGET='5000M' SCOPE=spfile
+SELECT name,open_mode FROM v$pdbs;
+
+conn sys/sys@orclpdb as sysdba
+
+ALTER PLUGGABLE DATABASE ORCLPDB SAVE STATE;
+
+shutdown immediate;
+
+conn sys/sys as sysdba
+
+conn sys/sys@orclpdb as sysdba;
+
+startup;
+
+shutdown immediate;
+
+ CREATE PFILE FROM SPFILE;
+
+STARTUP;
+CONN SYS / ORCLPDB
+
+SHOW pdbs;
+
+alter session set container =orclpdb;
+
+conn sys/ sys@orclpdb as sysdba;
+
+
+CREATE TABLESPACE APEX DATAFILE 'C:\Database19cInstall\oradata\ORCL\orclpdb\apex.dbf'
+SIZE 1000M AUTOEXTEND ON NEXT 1M;
+
+CONN SYS/SYS@ORCLPDB AS SYSDBA;
+
+@apexins apex apex temp /i/
+
+@apxchpwd.sql
+
+USER: ADMIN
+Pass:Apex#123
+
+@apex_rest_config.sql
+
+
+apex listener: Apex#123
+
+
+
+ALTER USER APEX_LISTENER  ACCOUNT UNLOCK identified by Apex#123;
+
+ALTER USER APEX_PUBLIC_USER ACCOUNT UNLOCK identified by Apex#123;
+
+ALTER USER APEX_REST_PUBLIC_USER ACCOUNT UNLOCK identified by Apex#123;
+
+ALTER USER APEX_INSTANCE_ADMIN_USER ACCOUNT UNLOCK identified by Apex#123;
+
+ALTER USER APEX_230100 ACCOUNT UNLOCK identified by Apex#123;
+
+---ALTER USER APEX_230200 ACCOUNT UNLOCK identified by Apex#123;
+
+conn sys/sys@orcl as sysdba;
+
+
+
+alter user ORDSYS ACCOUNT UNLOCK IDENTIFIED BY Apex#123;
+
+
+conn sys/sysorclpdb as sysdba;
+
+
+BEGIN
+DBMS_NETWORK_ACL_ADMIN.APPEND_HOST_ACE(
+host => '*',
+ace => xs$ace_type(privilege_list => xs$name_list('connect'),
+principal_name => 'APEX_230100',
+principal_type => xs_acl.ptype_db));
+END;
+/
+
+BEGIN
+DBMS_NETWORK_ACL_ADMIN.APPEND_HOST_ACE(
+host => '*',
+ace => xs$ace_type(privilege_list => xs$name_list('connect'),
+principal_name => 'APEX_230100',
+principal_type => xs_acl.ptype_db));
+END;
+/
+
+
+
+ALTER USER ANONYMOUS ACCOUNT UNLOCK;
+
+
+ CONN SYS/SYS@ORCLPDB AS SYSDBA
+
+ CONN SYS/SYS@ORCL AS SYSDBA
+
+
+ALTER USER anonymous IDENTIFIED BY Apex#123 ACCOUNT UNLOCK CONTAINER=ALL;
+
+
+
+
+
+ALTER USER APEX_PUBLIC_USER IDENTIFIED BY Mithu#123 ACCOUNT UNLOCK;
+
+
+CONN SYS/SYS@ORCLPDB AS SYSDBA
+
+
+SELECT DBMS_XDB.gethttpport FROM DUAL;
+
+
+ALTER USER APEX_PUBLIC_USER IDENTIFIED BY Apex#123 ACCOUNT UNLOCK;
+
+
+
+===========================
+
+===FOR 23.2 =====
+
+BEGIN
+DBMS_NETWORK_ACL_ADMIN.APPEND_HOST_ACE(
+host => '*',
+ace => xs$ace_type(privilege_list => xs$name_list('connect'),
+principal_name => 'APEX_230200',
+principal_type => xs_acl.ptype_db));
+END;
+/
+
+BEGIN
+DBMS_NETWORK_ACL_ADMIN.APPEND_HOST_ACE(
+host => '*',
+ace => xs$ace_type(privilege_list => xs$name_list('connect'),
+principal_name => 'APEX_230200',
+principal_type => xs_acl.ptype_db));
+END;
+/
+
+
+
+
+==========================
+
+then install java:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,181 @@
+
+How to Install Oracle Apex 23.1 in Oracle 19C DB.
+-----------------------------------------------------
+
+>Go to D:\DilderSoftOrclApex\Oracle apex 23.2\apex_23_1\apex       write cmd
+
+D:\DilderSoftOrclApex\db19\bin\sqlplus.exe /nolog
+
+CONN SYS/SYS AS SYSDBA
+
+
+To Uninstall Apex run this script :
+------------------------------------
+
+---- @apxremov.sql  
+
+--DROP TABLESPACE APEX23;
+
+------------------------------------------
+
+CREATE TABLESPACE APEX23
+ DATAFILE  'D:\DB19install\oradata\ORCL\APEX23.dbf' SIZE 1000M AUTOEXTEND ON NEXT 1M;
+
+CONN SYS/SYS@RAFIQ AS SYSDBA
+
+@apexins APEX23 APEX23 temp /i/
+
+@apxchpwd.sql
+
+     [User : BBSS
+     [Password : Mithu#123]
+
+CONN SYS/SYS AS SYSDBA
+
+
+@apex_rest_config.sql
+
+
+ALTER USER APEX_LISTENER  ACCOUNT UNLOCK identified by Mithu#123;
+
+ALTER USER APEX_PUBLIC_USER ACCOUNT UNLOCK identified by Mithu#123;
+
+ALTER USER APEX_REST_PUBLIC_USER ACCOUNT UNLOCK identified by Mithu#123;
+
+ALTER USER APEX_INSTANCE_ADMIN_USER ACCOUNT UNLOCK identified by Mithu#123;
+
+ALTER USER APEX_230100 ACCOUNT UNLOCK identified by Mithu#123;
+
+CONN SYS/SYS AS SYSDBA
+
+For Oracle Database version 12c or later run the below script:
+==========================================
+
+ALTER USER ANONYMOUS ACCOUNT UNLOCK;
+
+CONN SYS/SYS AS SYSDBA
+
+ALTER USER ANONYMOUS ACCOUNT UNLOCK;
+
+CONN SYS/SYS AS SYSDBA
+
+ALTER USER anonymous IDENTIFIED BY Mithu#123 ACCOUNT UNLOCK CONTAINER=ALL;
+
+CONN SYS/ SYS AS SYSDBA
+
+
+BEGIN
+DBMS_NETWORK_ACL_ADMIN.APPEND_HOST_ACE(
+host => '*',
+ace => xs$ace_type(privilege_list => xs$name_list('connect'),
+principal_name => 'APEX_230100',
+principal_type => xs_acl.ptype_db));
+END;
+/
+
+BEGIN
+DBMS_NETWORK_ACL_ADMIN.APPEND_HOST_ACE(
+host => 'localhost',
+ace => xs$ace_type(privilege_list => xs$name_list('connect'),
+principal_name => 'APEX_230100',
+principal_type => xs_acl.ptype_db));
+END;
+/
+SELECT DBMS_XDB.gethttpport FROM DUAL;
+
+
+ALTER USER APEX_PUBLIC_USER IDENTIFIED BY Mithu#123 ACCOUNT UNLOCK;
+
+---------------------------------------------------------------------------------
+
+Install Java .. (jdk-15.0.1_windows-x64_bin) I INSTALLED 19 JDK
+
+> GO TO ORDS FILE AND WRITE CMD
+
+jdk file location
+
+"C:\Program Files\Java\jdk-19\bin\java" -jar ords.war install
+
+database  password: orcl
+
+ Enter the APEX static resources location:
+---------------------------------------------
+
+D:\DilderSoftOrclApex\Oracle apex 23.2\apex_23_1\apex\images
+
+E:\Apex23_1\apex_23_1\apex\images
+
+localhost:8080/ords
+
+
+localhost:8080/ords/APEX_ADMIN
+
+Enter the administrator username: sys
+  Enter the database password for SYS AS SYSDBA: orcl
+
+
+workspace: BBSS USER :BBSS PASS: Mithu#123
+
+Install Tomcat9
+===========
+
+Install jdk-19
+
+Install tomcat-9
+
+--- USERNAME ---> ADMIN
+--- PASSWORD ---> 123
+
+
+  GO TO -->  E:\Apex23_1\apex_23_1\apex  and copy   images  folder
+  Paste          C:\Program Files\Apache Software Foundation\Tomcat 9.0\webapps\
+Rename folder images to i
+
+  Copy ords.war File And Paste 
+                   C:\Program Files\Apache Software Foundation\Tomcat 9.0\webapps\
+
+
+Go to Browse -------> localhost:8080
+ 
+go to control panel and environmental variable
+
+---------------------------------------------------------------- the end
+
+java -jar ords.war uninstall
+
+
+JAVA_TOOL_OPTIONS
+
+tomcat -> java 
+
+-Dconfig.url=D:\DilderSoftOrclApex\ords\config
+
+F:\Oracle apex 23.2\ords
+
+
+-Dconfig.url=C:\db_home19c\ords
+
+
+USERNAME: Dilder
+Password: Mithu#123
+
+
+Workspace: APXDATABASE
+USERNAME: Dilder
+Password: Mithu#123
+
+Tomcat:
+USERNAME: ADMIN
+PASSWORD: 123
+
+
+===================== *** ==================
+
+CMD Run on Administration :
+
+ords location. d:
+
+ords:
+D:\DilderSoftOrclApex\Oracle apex 23.2\ords
+Type: java -jar ords.war
+Create New Folderin Ords Directory and Name it as config
