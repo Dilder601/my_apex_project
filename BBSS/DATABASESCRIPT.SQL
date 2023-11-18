@@ -406,6 +406,7 @@ CREATE TABLE "VV_APPLY_LOAN"
 	"UPDATED_BY" NUMBER(10,0), 
 	"UPDATED_AT" TIMESTAMP (6), 
 	"REMAIN_LOAN_BALANCE" NUMBER, 
+    "LOAN_ID"   NUMBER
 	 PRIMARY KEY ("APPLY_ID")
   USING INDEX  ENABLE
    ) ;
@@ -1390,7 +1391,10 @@ vDATASET := vDATASET||'
         <tr>
             <td colspan="4">Accountant Sign</td>
             <td></td>
-            '||vBLANK_TD||'
+            '||vBLANK_TD||'SELECT VM.MEMBER_NAME, CW.WITHDRAW_DATE, VM.ACCOUNT_NO, CW.WITHDRAW_AMT
+FROM VV_COLL_WITHDRAW CW 
+LEFT JOIN VV_MEMBER VM ON VM.MEMBER_ID = CW.MEMBER_ID
+WHERE CW.MEMBER_ID = :P3_MEMBER_ID
             <td></td>
             <td></td>
         </tr>
