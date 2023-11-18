@@ -941,6 +941,33 @@ BEGIN
 END DFN_GET_USER_INST_ID;
 /
 
+create or replace FUNCTION DFN_GET_BLOCK_ID (pUSERNAME VARCHAR2)
+   RETURN VARCHAR2
+IS
+   vBLOCK_CODE   VARCHAR2(100);
+BEGIN
+      BEGIN
+         SELECT   ASSIGN_BLOCK
+           INTO   vBLOCK_CODE
+           FROM   EMP_USERS --inst_users_list
+          WHERE   UPPER (EMP_CODE) = UPPER (pUSERNAME);
+      EXCEPTION
+         WHEN NO_DATA_FOUND
+         THEN
+            vBLOCK_CODE := NULL;
+         WHEN TOO_MANY_ROWS
+         THEN
+            vBLOCK_CODE := NULL;
+         WHEN OTHERS
+         THEN
+            vBLOCK_CODE := NULL;
+      END;
+   --END IF;
+   RETURN vBLOCK_CODE;
+END DFN_GET_BLOCK_ID;
+/
+
+
 create or replace FUNCTION GET_CLOSING_REPORT (pD1 VARCHAR2, pD2 VARCHAR2, pBLOCK VARCHAR2)
 RETURN CLOB
 IS
