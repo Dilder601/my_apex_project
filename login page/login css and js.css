@@ -1,5 +1,13 @@
+
+/*
+NOTE:   
+
+
 --- node page: 
 inline css:
+
+*/
+
 
 * {
   margin:0px auto;
@@ -157,7 +165,7 @@ transform: rotate(-20deg);
   transform: rotate(-20deg);
   }
 }
-}
+
 @-moz-keyframes animation_error_2 {
   from { -webkit-transform: rotate(-15deg); 
   transform: rotate(-15deg);
@@ -175,12 +183,13 @@ transform: rotate(-20deg);
   }
 }
 
-
+/*
 
 -- execute when page load:
+
 window.onload = function(){
 document.querySelector('.cont_principal').className+= "cont_error_active";  
   
 }
 
-
+*/
