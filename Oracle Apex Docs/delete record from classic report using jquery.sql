@@ -31,6 +31,7 @@ select VM.MEMBER_ID ID,
 
   CREATE A NEW HIDDEN PAGE ITEM: P11_ID
 
+not on page item:
 
 
 CREATE DYNAMIC ACTION:

@@ -1,0 +1,1 @@
+D:\app\Administrator\product\11.2.0\dbhome_1\BIN\expDP DBBACKUP/DBBACKUP@PDBDB directory=UBILL schemas=EBC,EMP,SBU,EMPOWER,UBILL dumpfile=%DATE:~7,2%%DATE:~4,2%%DATE:~-4%_UBILL_BACKUP.dmp logfile=%DATE:~7,2%%DATE:~4,2%%DATE:~-4%_UBILL_BACKUP.log full=no
