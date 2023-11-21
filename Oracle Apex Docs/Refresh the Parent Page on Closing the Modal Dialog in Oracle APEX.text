@@ -1,0 +1,22 @@
+THERE HAVE 2 PAGE PARENT AND CHILD. EXAMPLE : PARENT 7 CHILD : 8
+
+ON CHILD PAGE:
+
+PAGE NODE: ON DIALOGUR -> ATTRIBUTES:
+CODE: 
+    close: function(event, ui) {apex.navigation.dialog.close(true,{dialogPageId:8});}
+
+
+ON PARENT PAGE:
+
+    CREATE DYNAMIC ACTION ON : Dialog Closed
+
+    event : Dialog Closed
+    Selection Type: JavaScript Expression
+    JavaScript Expression  -> window
+
+    Client-side Condition: 
+    Type -> JavaScript Expression
+    JavaScript Expression : this.browserEvent != "load" && this.data.dialogPageId == "8"
+
+    on true action : refresh -> Region
