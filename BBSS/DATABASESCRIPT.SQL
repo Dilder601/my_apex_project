@@ -967,6 +967,56 @@ BEGIN
 END DFN_GET_BLOCK_ID;
 /
 
+CREATE OR REPLACE FUNCTION DFN_GET_ROLE_ID (pUSERNAME VARCHAR2)
+   RETURN NUMBER
+IS
+   vROLE_ID   NUMBER;
+BEGIN
+      BEGIN
+         SELECT   USER_STATUS
+           INTO   vROLE_ID
+           FROM   EMP_USERS --inst_users_list
+          WHERE   UPPER (EMP_CODE) = UPPER (pUSERNAME);
+      EXCEPTION
+         WHEN NO_DATA_FOUND
+         THEN
+            vROLE_ID := NULL;
+         WHEN TOO_MANY_ROWS
+         THEN
+            vROLE_ID := NULL;
+         WHEN OTHERS
+         THEN
+            vROLE_ID := NULL;
+      END;
+   --END IF;
+   RETURN vROLE_ID;
+END DFN_GET_ROLE_ID;
+/
+
+CREATE OR REPLACE TYPE SPLITTED AS OBJECT (SRL_NO NUMBER(10), STR_VALUE VARCHAR2(2000));
+/
+
+CREATE OR REPLACE TYPE SPLITTED_TAB AS TABLE OF SPLITTED;
+/
+
+CREATE OR REPLACE FUNCTION DFN_GET_STRING_SPLITTED (pString       VARCHAR2, pSeparator    VARCHAR2)
+RETURN splitted_tab
+PIPELINED
+IS
+   vString   VARCHAR2 (4000) := REPLACE (pString, pSeparator, '~');
+BEGIN
+   FOR i IN (    SELECT REGEXP_SUBSTR (vString, '[^~]+', 1, LEVEL) val, ROWNUM rid
+                   FROM DUAL
+             CONNECT BY REGEXP_SUBSTR (vString, '[^~]+', 1, LEVEL) IS NOT NULL)
+   LOOP
+      PIPE ROW (splitted (i.rid, i.val));
+   END LOOP;
+EXCEPTION
+   WHEN OTHERS
+   THEN
+      NULL;
+END dfn_get_string_splitted;
+/
 
 create or replace FUNCTION GET_CLOSING_REPORT (pD1 VARCHAR2, pD2 VARCHAR2, pBLOCK VARCHAR2)
 RETURN CLOB
