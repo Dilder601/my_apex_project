@@ -1,4 +1,0 @@
-SCHEMAS=HR,OE,SH,IX,PM
-DUMPFILE=exported_sample_schemas.dmp 
-DIRECTORY=data_pump_dir
-LOGFILE=exported_sample_schemas.log
