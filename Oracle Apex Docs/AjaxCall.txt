@@ -76,3 +76,56 @@ apex.server.process ("ABC",
          }    
   }
 });
+
+--- ***------
+
+APPLICATION PROCESS: 
+NAME OF APPLICATION PROCESS : GET_NAME
+
+
+
+declare
+    v_ename varchar2(100);
+begin
+   select 
+          ename into v_ename 
+   from 
+          emp 
+   where 
+          empno = APEX_APPLICATION.g_x01;
+HTP.P(v_ename);
+
+exception when others then 
+null;
+end;
+
+
+FUNCTION AND GLOBAL VARIABLE: CREATE FUNCTION 
+
+function get_name() {
+    apex.server.process("GET_NAME", 
+        {
+            x01: $v('P97_EMP_ID')
+        }, 
+        { 
+            dataType: 'text',
+            success: function(pData) {
+                $s('P97_EMP_NAME', pData);
+            },
+            error: function(request, status, error) {
+                console.error("Error making AJAX request:", status, error);
+            }
+        }
+    );
+}
+
+
+CALL THIS FUNCTION: 
+
+ON P97_EMP_ID => CUSTOM ATTRIBUTE 
+
+onchange="get_name();"
+
+
+
+
