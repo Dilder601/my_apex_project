@@ -1,0 +1,22 @@
+#Demo Code#
+
+emp dept
+
+
+from employyee to department 
+
+link department page:
+
+<a href="f?p=&APP_ID.:43:&APP_SESSION.:::43::"><span class="fa fa-plus"></span>New</a>
+
+$s('P45_DEPARTMENT_ID', this.data["P43_DEPARTMENT_ID"], this.data["P43_DEPARTMENT_NAME"], false);
+
+BEGIN
+
+    FOR I IN (SELECT APPLY_ID, SUM (LOAN_AMOUT) COLL FROM VV_DAILY_LOAN_COLL GROUP BY APPLY_ID) LOOP
+    
+        UPDATE VV_APPLY_LOAN SET REMAIN_LOAN_BALANCE = TOTAL_AMT_WITH_INTEREST - I.COLL WHERE APPLY_ID = I.APPLY_ID;
+    
+    END LOOP;
+
+END;

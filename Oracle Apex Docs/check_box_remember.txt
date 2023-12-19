@@ -1,0 +1,102 @@
+select EMPNO,
+    case when instr(:P60_SELECTED, ':' || EMPNO || ':') > 0 then 
+      'checked' 
+    else 
+      '' 
+    end as selected,
+    ENAME,
+    JOB,MGR,
+    HIREDATE,
+    SAL,
+    COMM,
+    DEPTNO
+  from EMP;
+
+
+
+Heading : <input type="checkbox" value="all">
+HTML Expression : <input type="checkbox" #SELECTED# value="#EMPNO#">
+
+
+when click>>region>>js>>dynamic action
+
+
+var cb$, checked, allRows$,
+    sel$ = $("#P60_SELECTED"),
+    event = this.browserEvent,
+    target$ = $(event.target),
+    th$ = target$.closest("th"),
+    tr$ = target$.closest("tr");
+
+if (th$.length) {
+    // the click was on the "select all"
+    // checkbox or checkbox cell
+    cb$ = th$.find("input");
+    if (cb$.length && cb$.val() === "all") {
+        checked = cb$[0].checked;
+        if (target$[0].nodeName !== 'INPUT') {
+            // only do this if the click was not on the checkbox
+            // because the checkbox will check itself
+            checked = cb$[0].checked = !checked;
+        }
+        if (sel$.val() === "") {
+            sel$.val(":");
+        }
+        $("#myreport").find("td input").each(function() {
+            this.checked = checked;
+            // give a visual style to the [un]selected row
+            $(this).closest("tr").toggleClass("selected", checked);
+            // update the hidden selected item
+            sel$.val(sel$.val().replace(":" + this.value + ":", ":"));
+            if (checked) {
+                sel$.val(sel$.val() + this.value + ":");
+            }
+        });
+    }
+} else if (tr$.length) {
+    // the click was on some other data row
+    cb$ = tr$.find("td").first().find("input");
+    checked = cb$[0].checked;
+    if (target$[0].nodeName !== 'INPUT') {
+        // only do this if the click was not on the checkbox
+        // because the checkbox will check itself
+        checked = cb$[0].checked = !checked;
+    }
+    // give a visual style to the [un]selected row
+    tr$.toggleClass("selected", checked);
+    // update the hidden selected item
+    if (checked) {
+        if (sel$.val() === "") {
+            sel$.val(":");
+        }
+        sel$.val(sel$.val() + cb$.val() + ":");
+    } else {
+        sel$.val(sel$.val().replace(":" + cb$.val() + ":", ":"));        
+    }
+    // update the select all checkbox state
+    allRows$ = $("#myreport").find("td input");
+    checked = (allRows$.length === allRows$.filter(":checked").length);
+    $("#myreport").find("th input")[0].checked = checked;
+}
+
+
+
+after refresh>>region>>dynamic actin>>js
+
+var checked,
+    allRows$ = $("#myreport").find("td input");
+allRows$.filter(":checked").closest("tr").addClass("selected");
+checked = (allRows$.length === allRows$.filter(":checked").length);
+$("#myreport").find("th input")[0].checked = checked;
+
+
+inline css
+
+.a-IRR-table tr.selected td {
+    background-color: #2d7bbb;
+    color: #fff;
+}
+.a-IRR-table tr.selected:hover td {
+    background-color: #399bea;
+    color: #fff;
+}
