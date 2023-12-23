@@ -100,6 +100,13 @@ null;
 end;
 
 
+
+SELECT MEMBER_NAME, ACCOUNT_NO, JOINING_DATE, MEMBER_ADDRESS, BLOCK_CODE, COLLECTED_AMOUNT
+  FROM VV_MEMBER
+ WHERE MEMBER_ID = 137
+
+
+
 FUNCTION AND GLOBAL VARIABLE: CREATE FUNCTION 
 
 function get_name() {
@@ -128,4 +135,69 @@ onchange="get_name();"
 
 
 
+====== *** =====
 
+DECLARE
+    vMEMBER_NAME   VARCHAR2 (100);
+    vACCOUNT_NO    VARCHAR2(100);
+    vJOINING_DATE   DATE;
+    vMEMBER_ADDRESS VARCHAR2(1000);
+    vBLOCK_CODE     VARCHAR2(10);
+    vCOLLECTED_AMOUNT   NUMBER;  
+BEGIN
+    SELECT MEMBER_NAME, ACCOUNT_NO, JOINING_DATE, 
+           MEMBER_ADDRESS, BLOCK_CODE, COLLECTED_AMOUNT
+      INTO vMEMBER_NAME, vACCOUNT_NO, vJOINING_DATE, 
+           vMEMBER_ADDRESS, vBLOCK_CODE, vCOLLECTED_AMOUNT
+      FROM VV_MEMBER
+     WHERE MEMBER_ID = APEX_APPLICATION.G_X01;
+
+    HTP.P (vMEMBER_NAME);
+    HTP.P (vACCOUNT_NO);
+    HTP.P (vJOINING_DATE);
+    HTP.P (vMEMBER_ADDRESS);
+    HTP.P (vBLOCK_CODE);
+    HTP.P (vCOLLECTED_AMOUNT); 
+    
+EXCEPTION
+    WHEN OTHERS
+    THEN
+        NULL;
+END;
+
+
+=== *** ===
+ FUNCTION AND GLOBAL VARIABLE:
+
+
+ function get_member_info() {
+    apex.server.process("MEMBER_INFO", 
+        {
+            x01: $v('P31_MEMBER_ID')
+        }, 
+        { 
+            dataType: 'text',
+            success: function(pData) {
+                $s('P31_MEMBER_NAME', pData);
+            },
+            error: function(request, status, error) {
+                console.error("Error making AJAX request:", status, error);
+            }
+        }
+    );
+}
+
+
+
+
+CALL THIS FUNCTION: 
+
+ON P31_MEMBER_ID => CUSTOM ATTRIBUTE 
+
+onchange="get_member_info();"
+
+
+
+
+
+MEMBER_DATA
