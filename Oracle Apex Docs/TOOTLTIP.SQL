@@ -2,6 +2,11 @@
 
 <span data-tooltip="Add New Customer" data-flow="right"><a href="f?p=&APP_ID.:9:&SESSION.::NO::"><i aria-hidden="true" class="fa fa-plus"></i></a></span>
 
+
+
+<span data-tooltip="&P11_COLL_AMT." data-flow="right"><i aria-hidden="true" class="t-Icon fa fa-eye"></i></a></span>
+
+
 <style>
 [data-tooltip] {
   position: relative;
