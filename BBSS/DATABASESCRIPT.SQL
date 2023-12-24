@@ -406,7 +406,8 @@ CREATE TABLE "VV_APPLY_LOAN"
 	"UPDATED_BY" NUMBER(10,0), 
 	"UPDATED_AT" TIMESTAMP (6), 
 	"REMAIN_LOAN_BALANCE" NUMBER, 
-    "LOAN_ID"   NUMBER
+    "LOAN_ID"   NUMBER, 
+	"CLOSING_DATE" DATE
 	 PRIMARY KEY ("APPLY_ID")
   USING INDEX  ENABLE
    ) ;
@@ -415,7 +416,7 @@ CREATE TABLE "VV_APPLY_LOAN"
    CREATE SEQUENCE  "VV_APPLY_LOAN_SEQ"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 8 NOCACHE  NOORDER  NOCYCLE  NOKEEP  NOSCALE  GLOBAL ;
 /
 
-  CREATE OR REPLACE EDITIONABLE TRIGGER "VV_APPLY_LOAN_BR_TRI" 
+CREATE OR REPLACE EDITIONABLE TRIGGER "VV_APPLY_LOAN_BR_TRI" 
 BEFORE UPDATE OR INSERT OR DELETE
 ON VV_APPLY_LOAN
 FOR EACH ROW
@@ -427,13 +428,37 @@ BEGIN
 		END IF;
 		 --:NEW.CREATED_BY := NVL(v('APP_USER'),1);
 		 :NEW.CREATED_AT := SYSDATE;
+
          :NEW.REMAIN_LOAN_BALANCE := :NEW.TOTAL_AMT_WITH_INTEREST;
+
 	ELSIF UPDATING THEN
 		-- :NEW.UPDATED_BY := NVL(GET_USER_ID(v('APP_USER')),1);
 		:NEW.UPDATED_AT := SYSDATE;
+
+		DECLARE
+            vDIFF_BAL_NEW_HIGH NUMBER:= 0;
+            vDIFF_BAL_OLD_HIGH NUMBER:= 0;
+		BEGIN
+            IF :NEW.TOTAL_AMT_WITH_INTEREST <> :OLD.TOTAL_AMT_WITH_INTEREST THEN
+            
+                IF :NEW.TOTAL_AMT_WITH_INTEREST > :OLD.TOTAL_AMT_WITH_INTEREST THEN
+                
+                    vDIFF_BAL_NEW_HIGH := NVL(:NEW.TOTAL_AMT_WITH_INTEREST,0) - NVL(:OLD.TOTAL_AMT_WITH_INTEREST,0); --10000
+                    
+                    :NEW.REMAIN_LOAN_BALANCE := :OLD.REMAIN_LOAN_BALANCE + vDIFF_BAL_NEW_HIGH;
+                ELSE 
+                    vDIFF_BAL_OLD_HIGH := NVL(:OLD.TOTAL_AMT_WITH_INTEREST,0) - NVL(:NEW.TOTAL_AMT_WITH_INTEREST,0);
+                    
+                    :NEW.REMAIN_LOAN_BALANCE :=  :OLD.REMAIN_LOAN_BALANCE - vDIFF_BAL_OLD_HIGH;
+                END IF;
+                
+            END IF;
+		END;
+	
+		
 	END IF;
 
-END;
+END "VV_APPLY_LOAN_BR_TRI";
 /
 
 
@@ -499,24 +524,43 @@ END;
    CREATE SEQUENCE  "VV_COLL_WITHDRAW_SEQ"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 25 NOCACHE  NOORDER  NOCYCLE  NOKEEP  NOSCALE  GLOBAL ;
 /
 
-  CREATE OR REPLACE EDITIONABLE TRIGGER "VV_COLL_WITHDRAW_BR_TRI" 
+create or replace TRIGGER "VV_COLL_WITHDRAW_BR_TRI" 
 BEFORE UPDATE OR INSERT OR DELETE
 ON VV_COLL_WITHDRAW
 FOR EACH ROW
+DECLARE
+    vCOLL_EXIST NUMBER;
 BEGIN
 
 	IF INSERTING THEN
 		IF(:NEW.WITHDRAW_ID IS NULL) THEN
 			:NEW.WITHDRAW_ID := VV_COLL_WITHDRAW_SEQ.NEXTVAL;
-		END IF;
-		 --:NEW.CREATED_BY := NVL(v('APP_USER'),1);
+		END IF; 
 		 :NEW.CREATED_AT := SYSDATE;
+
+            BEGIN
+
+                UPDATE VV_MEMBER 
+                   SET COLLECTED_AMOUNT = (NVL(COLLECTED_AMOUNT,0) - NVL(:NEW.WITHDRAW_AMT,0)) 
+                 WHERE MEMBER_ID = :NEW.MEMBER_ID;
+
+             END;
+
+
+       SELECT COLLECTED_AMOUNT INTO vCOLL_EXIST FROM VV_MEMBER WHERE MEMBER_ID = :NEW.MEMBER_ID;
+       
+
+        IF vCOLL_EXIST = 0 THEN
+                UPDATE VV_MEMBER SET STATUS = 0 WHERE MEMBER_ID = :NEW.MEMBER_ID;
+        END IF;
+
+		
 	ELSIF UPDATING THEN
 		-- :NEW.UPDATED_BY := NVL(GET_USER_ID(v('APP_USER')),1);
 		:NEW.UPDATED_AT := SYSDATE;
 	END IF;
 
-END;
+END VV_COLL_WITHDRAW_BR_TRI;
 /
 
 CREATE TABLE "VV_DAILY_COLLECTION" 
@@ -543,7 +587,7 @@ CREATE TABLE "VV_DAILY_COLLECTION"
    ) ;
 /
 
-  CREATE OR REPLACE EDITIONABLE TRIGGER "MEMBER_DAILY_COLL_TOTAL_TRI" 
+  CREATE OR REPLACE TRIGGER MEMBER_DAILY_COLL_TOTAL_TRI
     AFTER INSERT OR UPDATE 
     ON VV_DAILY_COLLECTION
     FOR EACH ROW
@@ -592,7 +636,7 @@ BEGIN
         --      UPDATE VV_DAILY_COLLECTION SET SCHEDULE_ID  = I.SCHEDULE_ID WHERE :NEW.COLLECTION_DATE BETWEEN I.START_DATE AND I.END_DATE;
         --  END LOOP;
 
-        -- UPDATING IS_POST = 'S' IF COLLECTION USER IS ADMIN
+        -- UPDATING IS_POST = 'Y' IF COLLECTION USER IS ADMIN
 
         BEGIN
 
@@ -642,28 +686,41 @@ END;
 /
 
 
-  CREATE OR REPLACE EDITIONABLE TRIGGER "VV_DAILY_LOAN_COLL_AR_TRI" 
+create or replace TRIGGER "VV_DAILY_LOAN_COLL_AR_TRI"
 AFTER UPDATE OR INSERT OR DELETE
 ON VV_DAILY_LOAN_COLL
 FOR EACH ROW
+DECLARE 
+    vREMAIN_BAL NUMBER :=0;
 BEGIN
 
 	IF INSERTING THEN
 		UPDATE VV_APPLY_LOAN
            SET REMAIN_LOAN_BALANCE =  REMAIN_LOAN_BALANCE - :NEW.LOAN_AMOUT
-        WHERE MEMBER_ID = :NEW.MEMBER_ID;
+        WHERE  APPLY_ID = :NEW.APPLY_ID
+         AND STATUS = 1;
+
+        SELECT REMAIN_LOAN_BALANCE INTO vREMAIN_BAL  FROM VV_APPLY_LOAN WHERE APPLY_ID = :NEW.APPLY_ID AND STATUS = 1;
+
+         IF NVL(vREMAIN_BAL,0) = 0 THEN 
+            UPDATE VV_APPLY_LOAN 
+               SET STATUS = 0 
+             WHERE APPLY_ID = :NEW.APPLY_ID AND STATUS = 1;
+         END IF;
 
     ELSIF UPDATING THEN
 
             UPDATE VV_APPLY_LOAN
                SET REMAIN_LOAN_BALANCE =
                        NVL (REMAIN_LOAN_BALANCE, 0) + (NVL (:NEW.LOAN_AMOUT, 0) - NVL (:OLD.LOAN_AMOUT, 0))
-             WHERE MEMBER_ID = :NEW.MEMBER_ID;
+             WHERE APPLY_ID = :NEW.APPLY_ID
+               AND STATUS = 1;
 		 
 	ELSIF DELETING THEN
        UPDATE VV_APPLY_LOAN
            SET REMAIN_LOAN_BALANCE =  NVL(REMAIN_LOAN_BALANCE,0) + NVL(:OLD.LOAN_AMOUT,0)
-        WHERE MEMBER_ID = :NEW.MEMBER_ID;
+        WHERE  APPLY_ID = :NEW.APPLY_ID
+         AND STATUS = 1;
 
 	END IF;
 
@@ -673,7 +730,7 @@ END VV_DAILY_LOAN_COLL_AR_TRI;
    CREATE SEQUENCE  "VV_DAILY_LOAN_COLL_SEQ"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 37 NOCACHE  NOORDER  NOCYCLE  NOKEEP  NOSCALE  GLOBAL ;
 /
 
-ALTER TRIGGER "VV_DAILY_LOAN_COLL_AR_TRI" ENABLE;
+
 
 create or replace TRIGGER "VV_DAILY_LOAN_COLL_BR_TRI"
 BEFORE UPDATE OR INSERT OR DELETE
@@ -693,8 +750,6 @@ BEGIN
          BEGIN
 
             --SELECT  A.USER_STATUS INTO vROLE_ID FROM EMP_USERS A JOIN VV_DAILY_LOAN_COLL B ON B.CREATED_BY = A.CREATED_BY WHERE LOAN_ID =:NEW.LOAN_ID;
-
-            -- UPDATING IS_POST = 'S' IF COLLECTION USER IS ADMIN
 
             SELECT DFN_GET_ROLE_ID(v('APP_USER')) INTO vROLE_ID FROM DUAL;
 
@@ -992,8 +1047,24 @@ END DFN_GET_USER_INST_ID;
 create or replace FUNCTION DFN_GET_BLOCK_ID (pUSERNAME VARCHAR2)
    RETURN VARCHAR2
 IS
+   vUSER_ROLE   NUMBER;
    vBLOCK_CODE   VARCHAR2(100);
 BEGIN
+
+     SELECT   NVL (USER_STATUS, 0)
+       INTO   vUSER_ROLE
+       FROM   EMP_USERS --inst_users_list
+      WHERE   UPPER (EMP_CODE) = UPPER (pUSERNAME);
+
+      IF vUSER_ROLE = 36 THEN
+            SELECT LISTAGG(ASSIGN_BLOCK, ', ') WITHIN GROUP (ORDER BY ASSIGN_BLOCK) INTO vBLOCK_CODE FROM EMP_USERS;
+      ELSIF vUSER_ROLE != 36 THEN
+         SELECT   ASSIGN_BLOCK
+           INTO   vBLOCK_CODE
+           FROM   EMP_USERS --inst_users_list
+          WHERE   UPPER (EMP_CODE) = UPPER (pUSERNAME);
+      END IF;
+      /*
       BEGIN
          SELECT   ASSIGN_BLOCK
            INTO   vBLOCK_CODE
@@ -1002,20 +1073,20 @@ BEGIN
       EXCEPTION
          WHEN NO_DATA_FOUND
          THEN
-            vBLOCK_CODE := NULL;
+            SELECT LISTAGG(ASSIGN_BLOCK, ', ') WITHIN GROUP (ORDER BY ASSIGN_BLOCK) INTO vBLOCK_CODE FROM EMP_USERS;
          WHEN TOO_MANY_ROWS
          THEN
             vBLOCK_CODE := NULL;
          WHEN OTHERS
          THEN
             vBLOCK_CODE := NULL;
-      END;
+      END;*/
    --END IF;
    RETURN vBLOCK_CODE;
 END DFN_GET_BLOCK_ID;
 /
 
-CREATE OR REPLACE FUNCTION DFN_GET_ROLE_ID (pUSERNAME VARCHAR2)
+create or replace FUNCTION DFN_GET_ROLE_ID (pUSERNAME VARCHAR2)
    RETURN NUMBER
 IS
    vROLE_ID   NUMBER;
@@ -1069,28 +1140,26 @@ END dfn_get_string_splitted;
 create or replace FUNCTION GET_CLOSING_REPORT (pD1 VARCHAR2, pD2 VARCHAR2, pBLOCK VARCHAR2)
 RETURN CLOB
 IS
-    vDATASET    CLOB;
-    vHEADERS    VARCHAR2(4000);
-    vSLNO       NUMBER :=1;
+    vDATASET            CLOB;
+    vHEADERS            VARCHAR2(4000);
+    vSLNO               NUMBER :=1;
     vQRY                VARCHAR2(4000);
     vDatesPart          VARCHAR2(4000);
     vTrTdsPart          VARCHAR2(4000);
     vTrTdsPartSumm      VARCHAR2(4000);
     vBLANK_TD           VARCHAR2(2000);
+    vMEMBER_NAME        VARCHAR2(2000);
     TYPE qry_cur IS REF CURSOR;
     qry_cursor          qry_cur;
---    P19_START_DATE      DATE := TO_DATE(pD1,'DDMMRRRR');
---    P19_END_DATE        DATE := TO_DATE(pD2,'DDMMRRRR');
-    -- P19_START_DATE      DATE := pD1;
-    -- P19_END_DATE        DATE := pD2;
     vNO_OF_DAYS         NUMBER;
     vCOUNTER            NUMBER := 1;
     vTR_REC             VARCHAR2(4000);
+    vWITHDRAW_ROW       NUMBER := 0;
+    vWITHDRAW           NUMBER := 0;
 BEGIN
 
     vDATASET := vDATASET||' <input id="b_print" type="button" class="t-Button01_526" style="float:right;"  onclick="printdiv(''div_print'');" value=" Print " onload="openWindow.print()">';
     vDATASET := vDATASET||' <input id="b_print" type="button" class="t-Button02_526" style="float:right;"  onClick="tableToExcel(''div_print'');" value=" Excel ">'; 
-    --vDATA_OUTPUT := vDATA_OUTPUT||'<input id="b_exit" type="button" class="t-Button01_526" style="float:right;"  onClick="onClick="window.location.href=''f?p=&APP_ID.:9:&APP_SESSION.''" value="Create New Invoice">';
     vDATASET := vDATASET||'<div id="div_print">';  
 
     vNO_OF_DAYS := (TO_DATE(pD2,'DDMMRRRR') - TO_DATE(pD1,'DDMMRRRR')) + 1;
@@ -1101,15 +1170,19 @@ BEGIN
         vDatesPart := CASE WHEN vCOUNTER = 1 THEN 'SUM (DECODE (DID.SRL_NO,'||vCOUNTER||',NVL(COLLECTION_AMOUT,0))) D'||vCOUNTER||','
                            WHEN vCOUNTER > 1 THEN vDatesPart||'SUM (DECODE (DID.SRL_NO,'||vCOUNTER||',NVL(COLLECTION_AMOUT,0))) D'||vCOUNTER||',' END;
     
-        vTrTdsPart := CASE WHEN vCOUNTER = 1 THEN '||''<td>''||D'||vCOUNTER ELSE vTrTdsPart||'||''</td><td>''||D'||vCOUNTER end ;
+        vTrTdsPart := CASE WHEN vCOUNTER = 1 THEN '||''<td>''||D'||vCOUNTER ELSE vTrTdsPart||'||''</td><td>''||D'||vCOUNTER END ;
         
-        vTrTdsPartSumm := CASE WHEN vCOUNTER = 1 THEN '||''<td>''||SUM (D'||vCOUNTER||')' else vTrTdsPartSumm||'||''</td><td>''||SUM (D'||vCOUNTER||')' end ;
+        vTrTdsPartSumm := CASE WHEN vCOUNTER = 1 THEN '||''<td>''||SUM (D'||vCOUNTER||')' ELSE vTrTdsPartSumm||'||''</td><td>''||SUM (D'||vCOUNTER||')' END ;
         
-        vBLANK_TD       := CASE WHEN vCOUNTER = 1 THEN '<td></td>' else vBLANK_TD||'<td></td>' end ;
+        vBLANK_TD       := CASE WHEN vCOUNTER = 1 THEN '<td></td>' ELSE vBLANK_TD||'<td></td>' END ;
         
         vCOUNTER := vCOUNTER + 1;
 
     END LOOP;
+
+    
+
+    SELECT EMP_NAME INTO vMEMBER_NAME FROM EMP_USERS WHERE ASSIGN_BLOCK = pBLOCK AND STATUS = 1;
 
 
     vDATASET := vDATASET||'
@@ -1119,11 +1192,12 @@ BEGIN
                 <h3 class="m-0">Closing Report</h3>
         </div>
 
+        <hr>
 
         <div class="coll-info">
-            <p>Member Name:  </p>
-            <p>Block: '||pBLOCK||'</p>
-            <p>Date:'||TO_CHAR(SYSDATE,'DD MON RRRR HH12:MI:SS')||'</p>
+            <p style="font-weight:bold;">Field Officer: '||vMEMBER_NAME||' </p>
+            <p style="font-weight:bold;">Block: '||pBLOCK||'</p>
+            <p style="font-weight:bold;">Date:'||TO_CHAR(SYSDATE,'DD MON RRRR HH12:MI:SS')||'</p>
         </div>
     ';
 
@@ -1140,22 +1214,9 @@ vDATASET := vDATASET||'
 
             FOR I IN (SELECT * FROM (GET_DAYS_LIST (TO_DATE(pD1,'DDMMRRRR'),TO_DATE(pD2,'DDMMRRRR'),'DD-MON-RR')) ORDER BY SRL_NO) LOOP
 
-                --vHEADERS := CASE WHEN vHEADERS IS NULL THEN I.DAY_DISP ELSE vHEADERS||' , '||I.DAY_DISP END;
                 vDATASET := vDATASET||'<th>'||I.DAY_DISP||'</th>';
 
             END LOOP;
-
---                FOR J IN (
---                            SELECT   REGEXP_SUBSTR(vHEADERS, '[^,]+', 1, LEVEL) as coll_date
---                              FROM dual
---                            CONNECT BY REGEXP_SUBSTR(vHEADERS, '[^,]+', 1, LEVEL) IS NOT NULL
---                ) LOOP
---
---                    vDATASET := vDATASET||'<th>'||J.coll_date||'</th>';
---
---                END LOOP;
-                
-
 
 vDATASET := vDATASET||'            
             <th>Total Collection</th>
@@ -1168,15 +1229,16 @@ vDATASET := vDATASET||'
      ';
 
     vQRY    := 
-    'SELECT ''<tr><td>''||SL_NO||''</td><td>''||MEMBER_NAME||''</td><td>''||ACCOUNT_NO||''</td><td>''||TO_CHAR (JOINING_DATE,''DD-MON-RR'')||''</td>
-    <td style="color:green; font-weight:bold; background: rgb(230, 230, 230);">''||WEEKLY_REMAINNG||''</td>'''||vTrTdsPart||'||''<td>''||COLLECTION_AMOUT||''</td><td>''||WITHDRAW||''</td><td style="color:green; font-weight:bold; background: rgb(230, 230, 230);">''||REMAINING||''</td></tr>'' TR
+    'SELECT WITHDRAW, ''<tr><td>''||SL_NO||''</td><td>''||MEMBER_NAME||''</td><td>''||ACCOUNT_NO||''</td><td>''||TO_CHAR (JOINING_DATE,''DD-MON-RR'')||''</td>
+    <td style="color:green; font-weight:bold; background: rgb(230, 230, 230);text-align:right;">''||WEEKLY_REMAINNG||''</td>'''||vTrTdsPart||'||''<td style="text-align:right;">''||COLLECTION_AMOUT||''</td><td style="text-align:right;">''||WITHDRAW||''</td><td style="color:green; font-weight:bold; background: rgb(230, 230, 230);text-align:right;">''||REMAINING||''</td></tr>'' TR
 FROM (
 SELECT A.*, ROWNUM SL_NO FROM (        
 SELECT VM.MEMBER_NAME, VM.ACCOUNT_NO, VM.JOINING_DATE,  MAX(NVL(DRWITHDRAW_AMT.WITHDRAW_AMT,0)) WITHDRAW, (SUM(NVL(VDC.COLLECTION_AMOUT,0)) -  MAX(NVL(DRWITHDRAW_AMT.WITHDRAW_AMT,0))) + MAX(NVL(WEEK_REM.WEEKLY_REMAINING,0))  REMAINING, SUM(NVL(WEEK_REM.WEEKLY_REMAINING,0)) WEEKLY_REMAINNG,
 '||vDatesPart||'
 SUM(NVL(VDC.COLLECTION_AMOUT,0)) COLLECTION_AMOUT
-FROM VV_DAILY_COLLECTION VDC
-LEFT JOIN VV_MEMBER VM ON VM.MEMBER_ID = VDC.MEMBER_ID
+FROM  (SELECT * FROM VV_MEMBER WHERE BLOCK_CODE = '''||pBLOCK||''') VM
+LEFT JOIN (SELECT * FROM VV_DAILY_COLLECTION
+           WHERE COLLECTION_DATE BETWEEN TO_DATE('''||pD1||''',''DDMMRRRR'') AND TO_DATE('''||pD2||''',''DDMMRRRR'') AND IS_POST = ''Y'') VDC ON VM.MEMBER_ID = VDC.MEMBER_ID
 LEFT JOIN VV_CLOSING_SCHEDULE VCS ON VCS.SCHEDULE_ID = VDC.SCHEDULE_ID
 LEFT JOIN (SELECT * FROM (GET_DAYS_LIST (TO_DATE('''||pD1||''',''DDMMRRRR''),TO_DATE('''||pD2||''',''DDMMRRRR''),''DD-MON-RR''))) DID ON DID.DT = VDC.COLLECTION_DATE
 LEFT JOIN (
@@ -1186,9 +1248,9 @@ SUM(VCW.WITHDRAW_AMT) WITHDRAW_AMT
 FROM VV_COLL_WITHDRAW VCW
 LEFT JOIN VV_MEMBER VM ON VM.MEMBER_ID = VCW.MEMBER_ID
 LEFT JOIN VV_CLOSING_SCHEDULE VCS ON VCS.SCHEDULE_ID = VCW.SCHEDULE_ID
-WHERE  VCW.WITHDRAW_DATE BETWEEN TO_DATE('''||pD1||''',''DDMMRRRR'') AND TO_DATE('''||pD2||''',''DDMMRRRR'') 
+WHERE  VCW.WITHDRAW_DATE BETWEEN TO_DATE('''||pD1||''',''DDMMRRRR'') AND TO_DATE('''||pD2||''',''DDMMRRRR'') AND VM.BLOCK_CODE = '''||pBLOCK||'''
 GROUP BY VCW.MEMBER_ID--, VCW.WITHDRAW_DATE
-) DRWITHDRAW_AMT ON DRWITHDRAW_AMT.MEMBER_ID = VDC.MEMBER_ID
+) DRWITHDRAW_AMT ON DRWITHDRAW_AMT.MEMBER_ID = VM.MEMBER_ID
 LEFT JOIN (
 SELECT VDC.MEMBER_ID,  SUM(NVL(COLLECTION_AMOUT,0)) -  MAX(NVL(WITHDRAW_AMT.WITHDRAW_AMT,0))  WEEKLY_REMAINING
 FROM VV_DAILY_COLLECTION VDC
@@ -1204,11 +1266,12 @@ GROUP BY VCW.MEMBER_ID, VCW.WITHDRAW_DATE
 ) WITHDRAW_AMT ON WITHDRAW_AMT.MEMBER_ID = VDC.MEMBER_ID
 WHERE VDC.COLLECTION_DATE < TO_DATE('''||pD1||''',''DDMMRRRR'')  AND VDC.IS_POST = ''Y'' 
 GROUP BY  VDC.MEMBER_ID
-) WEEK_REM ON WEEK_REM.MEMBER_ID = VDC.MEMBER_ID
-WHERE VDC.COLLECTION_DATE BETWEEN TO_DATE('''||pD1||''',''DDMMRRRR'') AND TO_DATE('''||pD2||''',''DDMMRRRR'') AND VDC.IS_POST = ''Y''  AND VM.BLOCK_CODE = '''||pBLOCK||'''
+) WEEK_REM ON WEEK_REM.MEMBER_ID = VM.MEMBER_ID
+WHERE VM.STATUS = 1
 GROUP BY VM.MEMBER_NAME, VM.ACCOUNT_NO, VM.JOINING_DATE
-ORDER BY VM.MEMBER_NAME
-) A)';
+ORDER BY VM.ACCOUNT_NO
+) A
+WHERE WEEKLY_REMAINNG > 0 OR REMAINING > 0)';
 
     --- DATA ROWS   vDATASET := vDATASET||'<tbody> 
     --DBMS_OUTPUT.PUT_LINE (vQRY);
@@ -1216,7 +1279,9 @@ ORDER BY VM.MEMBER_NAME
    
    LOOP
    
-       FETCH qry_cursor INTO vTR_REC;
+       FETCH qry_cursor INTO vWITHDRAW_ROW, vTR_REC;
+       vWITHDRAW := vWITHDRAW + vWITHDRAW_ROW;
+       vWITHDRAW_ROW:= 0;
        EXIT WHEN qry_cursor%notfound;
        
        vDATASET := vDATASET||vTR_REC;
@@ -1227,11 +1292,12 @@ ORDER BY VM.MEMBER_NAME
    
     vQRY    := 
     'SELECT ''<tr><td colspan="4" style="color:red; font-weight:bold; background: rgb(230, 230, 230);">Total</td>
-    <td style="color:red; font-weight:bold; background: rgb(230, 230, 230);">''||SUM (WEEKLY_REMAINNG)||''</td>'''||vTrTdsPartSumm||'||''<td style="color:red; font-weight:bold; background: rgb(230, 230, 230);">''||SUM (COLLECTION_AMOUT)||''</td>
-    <td style="color:red; font-weight:bold; background: rgb(230, 230, 230);">''||SUM (NVL(WITHDRAW,0))||''</td><td style="color:red; font-weight:bold; background: rgb(230, 230, 230);">''||SUM (NVL(REMAINING,0))||''</td></tr>'' TR
+    <td style="color:red; font-weight:bold; background: rgb(230, 230, 230);text-align:right;">''||SUM (WEEKLY_REMAINNG)||''</td>'''||vTrTdsPartSumm||'||''<td style="color:red; font-weight:bold; background: rgb(230, 230, 230);text-align:right;">''||SUM (COLLECTION_AMOUT)||''</td>
+    <td style="color:red; font-weight:bold; background: rgb(230, 230, 230);text-align:right;">''||'||vWITHDRAW||'||''</td><td style="color:red; font-weight:bold; background: rgb(230, 230, 230);text-align:right;">''||((SUM (COLLECTION_AMOUT) - '||vWITHDRAW||')+SUM (WEEKLY_REMAINNG)) ||''</td></tr>'' TR
 FROM (
 SELECT A.*, ROWNUM SL_NO FROM (        
-SELECT VM.MEMBER_NAME, VM.ACCOUNT_NO, VM.JOINING_DATE,  SUM(NVL(DRWITHDRAW_AMT.WITHDRAW_AMT,0)) WITHDRAW, (SUM(NVL(VDC.COLLECTION_AMOUT,0)) -  SUM(NVL(DRWITHDRAW_AMT.WITHDRAW_AMT,0))) + SUM(NVL(WEEK_REM.WEEKLY_REMAINING,0))  REMAINING, SUM(NVL(WEEK_REM.WEEKLY_REMAINING,0)) WEEKLY_REMAINNG,
+SELECT --VM.MEMBER_NAME, VM.ACCOUNT_NO, VM.JOINING_DATE,  
+SUM(NVL(DRWITHDRAW_AMT.WITHDRAW_AMT,0)) WITHDRAW, (SUM(NVL(VDC.COLLECTION_AMOUT,0)) -  SUM(NVL(DRWITHDRAW_AMT.WITHDRAW_AMT,0))) + SUM(NVL(WEEK_REM.WEEKLY_REMAINING,0))  REMAINING, SUM(NVL(WEEK_REM.WEEKLY_REMAINING,0)) WEEKLY_REMAINNG,
 '||vDatesPart||'
 SUM(NVL(VDC.COLLECTION_AMOUT,0)) COLLECTION_AMOUT
 FROM VV_DAILY_COLLECTION VDC
@@ -1265,7 +1331,7 @@ WHERE VDC.COLLECTION_DATE < TO_DATE('''||pD1||''',''DDMMRRRR'')  AND VDC.IS_POST
 GROUP BY  VDC.MEMBER_ID
 ) WEEK_REM ON WEEK_REM.MEMBER_ID = VDC.MEMBER_ID
 WHERE VDC.COLLECTION_DATE BETWEEN TO_DATE('''||pD1||''',''DDMMRRRR'') AND TO_DATE('''||pD2||''',''DDMMRRRR'') AND VDC.IS_POST = ''Y''  AND VM.BLOCK_CODE = '''||pBLOCK||'''
-GROUP BY VM.MEMBER_NAME, VM.ACCOUNT_NO, VM.JOINING_DATE
+--GROUP BY VM.MEMBER_NAME, VM.ACCOUNT_NO, VM.JOINING_DATE
 ORDER BY VM.MEMBER_NAME
 ) A)';
 
@@ -1341,10 +1407,8 @@ END GET_DAYS_LIST;
 create or replace FUNCTION GET_LOAN_COLL_REPORT (pD1 VARCHAR2, pD2 VARCHAR2,pBLOCK VARCHAR2)
 RETURN CLOB
 IS
-    vDATASET            CLOB;
-    vHEADERS            VARCHAR2(4000);
-    vSLNO               NUMBER:=1;
-    vQRY                VARCHAR2(4000);
+    vDATASET            CLOB; 
+    vQRY                VARCHAR2(32000);
     vDatesPart          VARCHAR2(4000);
     vTrTdsPart          VARCHAR2(4000);
     vTrTdsPartSumm      VARCHAR2(4000);
@@ -1353,21 +1417,21 @@ IS
     qry_cursor          qry_cur;
     
     vNO_OF_DAYS         NUMBER;
+    vMEMBER_NAME        VARCHAR2(100);
     vCOUNTER            NUMBER := 1;
     vTR_REC             VARCHAR2(4000);
 BEGIN
 
     vDATASET := vDATASET||' <input id="b_print" type="button" class="t-Button01_526" style="float:right;"  onclick="printdiv(''div_print'');" value=" Print " onload="openWindow.print()">';
     vDATASET := vDATASET||' <input id="b_print" type="button" class="t-Button02_526" style="float:right;"  onClick="tableToExcel(''div_print'');" value=" Excel ">'; 
-    --vDATA_OUTPUT := vDATA_OUTPUT||'<input id="b_exit" type="button" class="t-Button01_526" style="float:right;"  onClick="onClick="window.location.href=''f?p=&APP_ID.:9:&APP_SESSION.''" value="Create New Invoice">';
     vDATASET := vDATASET||'<div id="div_print">';    
 
     vNO_OF_DAYS := (TO_DATE(pD2,'DDMMRRRR') - TO_DATE(pD1,'DDMMRRRR')) + 1;
     
         FOR I IN 1..vNO_OF_DAYS LOOP
     
-        vDatesPart := CASE WHEN vCOUNTER = 1 THEN 'SUM (DECODE (DID.SRL_NO,'||vCOUNTER||',NVL(LOAN_AMOUT,0))) D'||vCOUNTER||','
-                           WHEN vCOUNTER > 1 THEN vDatesPart||'SUM (DECODE (DID.SRL_NO,'||vCOUNTER||',NVL(LOAN_AMOUT,0))) D'||vCOUNTER||',' END;
+        vDatesPart := CASE WHEN vCOUNTER = 1 THEN 'SUM (DECODE (SRL_NO,'||vCOUNTER||',NVL(DR_COLL_AMT,0))) D'||vCOUNTER||','
+                           WHEN vCOUNTER > 1 THEN vDatesPart||'SUM (DECODE (SRL_NO,'||vCOUNTER||',NVL(DR_COLL_AMT,0))) D'||vCOUNTER||',' END;
     
         vTrTdsPart := CASE WHEN vCOUNTER = 1 THEN '||''<td>''||D'||vCOUNTER ELSE vTrTdsPart||'||''</td><td>''||D'||vCOUNTER end ;
         
@@ -1378,6 +1442,11 @@ BEGIN
         vCOUNTER := vCOUNTER + 1;
 
     END LOOP;
+    
+    SELECT EMP_NAME 
+      INTO vMEMBER_NAME 
+      FROM EMP_USERS
+     WHERE ASSIGN_BLOCK = pBLOCK AND STATUS = 1;
 
     vDATASET := vDATASET||'
         <div class="header-info">
@@ -1387,11 +1456,12 @@ BEGIN
                 <h3 class="m-0">Loan Report</h3>
         </div>
 
-
+        <hr>
+        
         <div class="coll-info">
-            <p>Member Name: </p>
-            <p>Block: '||pBLOCK||'</p>
-            <p>Date:'||TO_CHAR(SYSDATE,'DD MON RRRR HH24:MI:SS')||'</p>
+            <p style="font-weight:bold;">Field Officer:'||vMEMBER_NAME||' </p>
+            <p style="font-weight:bold;">Block: '||pBLOCK||'</p>
+            <p style="font-weight:bold;">Date:'||TO_CHAR(SYSDATE,'DD MON RRRR HH24:MI:SS')||'</p>
         </div>
     ';
 
@@ -1407,25 +1477,16 @@ vDATASET := vDATASET||'
         <tr>
             <th>SL#</th>
             <th>Member Name</th>
-            <th>Account No.</th>
+            <th>Loan No.</th>
             <th>Joining Date</th>
             <th>Opening Balance</th>';
 
             FOR I IN (SELECT * FROM (GET_DAYS_LIST (TO_DATE(pD1,'DDMMRRRR'),TO_DATE(pD2,'DDMMRRRR'),'DD-MON-RR')) ORDER BY SRL_NO) LOOP
-
-                --vHEADERS := CASE WHEN vHEADERS IS NULL THEN I.DAY_DISP ELSE vHEADERS||' , '||I.DAY_DISP END;
+ 
                 vDATASET := vDATASET||'<th>'||I.DAY_DISP||'</th>';
 
             END LOOP;
 
---                FOR J IN (
---                            SELECT   REGEXP_SUBSTR(vHEADERS, '[^,]+', 1, LEVEL) as coll_date
---                              FROM dual
---                            CONNECT BY REGEXP_SUBSTR(vHEADERS, '[^,]+', 1, LEVEL) IS NOT NULL
---                        ) LOOP
---
---                END LOOP;
-                
 
 
 vDATASET := vDATASET||'            
@@ -1437,25 +1498,57 @@ vDATASET := vDATASET||'
      ';
 
   vQRY    := 
- 'SELECT ''<tr><td>''||SL_NO||''</td><td>''||MEMBER_NAME||''</td><td>''||ACCOUNT_NO||''</td><td>''||TO_CHAR (JOINING_DATE,''DD-MON-RR'')||''</td>
- <td style="color:green; font-weight:bold; background: rgb(230, 230, 230);">''||WEEKLY_REMAINNG||''</td>'''||vTrTdsPart||'||''<td>''||COLLECTION_AMOUT||''</td><td style="color:green; font-weight:bold; background: rgb(230, 230, 230);">''||REMAINING||''</td></tr>'' TR
+ 'SELECT ''<tr><td>''||SL_NO||''</td><td>''||MEMBER_NAME||''</td><td>''||LOAN_ID||''</td><td>''||TO_CHAR (JOINING_DATE,''DD-MON-RR'')||''</td>
+ <td style="color:green; font-weight:bold; background: rgb(230, 230, 230);text-align:right;">''||WEEKLY_REMAINNG||''</td>'''||vTrTdsPart||'||''<td>''||NVL(COLLECTION_AMOUT,0)||''</td><td style="color:green; font-weight:bold; background: rgb(230, 230, 230);">''||REMAINING||''</td></tr>'' TR
 FROM (
-    SELECT A.*, ROWNUM SL_NO FROM (    
-        SELECT VM.MEMBER_NAME, VM.ACCOUNT_NO, VM.JOINING_DATE, (MAX(NVL(REMAIN_LOAN_BALANCE,0)) +  SUM(NVL(LOAN_AMOUT,0))) WEEKLY_REMAINNG,    
-               NVL(REMAIN_LOAN_BALANCE,0) REMAINING,
-                '||vDatesPart||'
-                SUM(NVL(LOAN_AMOUT,0)) COLLECTION_AMOUT
-          FROM VV_DAILY_LOAN_COLL VDLC
-          LEFT JOIN VV_MEMBER VM ON VM.MEMBER_ID = VDLC.MEMBER_ID
-          LEFT JOIN VV_APPLY_LOAN VAL ON VAL.APPLY_ID =  VDLC.APPLY_ID AND VAL.MEMBER_ID = VDLC.MEMBER_ID
-          LEFT JOIN (SELECT * FROM (GET_DAYS_LIST (TO_DATE('''||pD1||''',''DDMMRRRR''),TO_DATE('''||pD2||''',''DDMMRRRR''),''DD-MON-RR''))) DID ON DID.DT = VDLC.LOAN_DATE
-         WHERE  VDLC.LOAN_DATE BETWEEN TO_DATE('''||pD1||''',''DDMMRRRR'') AND TO_DATE('''||pD2||''',''DDMMRRRR'') AND VDLC.IS_POST = ''Y'' AND VM.BLOCK_CODE = '''||pBLOCK||'''
-        GROUP BY MEMBER_NAME, VM.ACCOUNT_NO, VM.JOINING_DATE, REMAIN_LOAN_BALANCE
-        ORDER BY VM.MEMBER_NAME
-        ) A)
+    SELECT A.*, ROWNUM SL_NO 
+      FROM (
+            SELECT MEMBER_ID, MEMBER_NAME, LOAN_ID, JOINING_DATE, MAX (WEEKLY_REMAINNG) WEEKLY_REMAINNG, MAX (REMAINING_BAL) REMAINING,
+                   '||vDatesPart||'
+                   SUM (NVL (DR_COLL_AMT,0)) COLLECTION_AMOUT
+              FROM
+                (
+                SELECT VM.*,DTRCOL.SRL_NO, DTRCOL.LOAN_DATE LOAN_DATE,DTRCOL.DR_COLL_AMT
+                  FROM
+                    (
+                    SELECT VM.*, COL.COLL_AMT, VM.TOTAL_AMT_WITH_INTEREST - NVL (COL.COLL_AMT, 0) WEEKLY_REMAINNG, NVL (DTRCOL.DR_TOT_COLL, 0) DR_TOT_COLL,
+                           VM.TOTAL_AMT_WITH_INTEREST - NVL (COL.COLL_AMT, 0) - NVL (DTRCOL.DR_TOT_COLL, 0) REMAINING_BAL
+                            --, --DTRCOL.SRL_NO, DTRCOL.LOAN_DATE LOAN_DATE,DTRCOL.DR_COLL_AMT, DTRCOLR.NROWS
+                      FROM  (SELECT VAL.APPLY_ID,VAL.APPLY_DATE JOINING_DATE, VAL.LOAN_ID, 
+                                    VAL.REMAIN_LOAN_BALANCE,VAL.MEMBER_ID, VM.MEMBER_NAME, VAL.TOTAL_AMT_WITH_INTEREST  
+                               FROM VV_MEMBER VM
+                               JOIN VV_APPLY_LOAN VAL ON VM.MEMBER_ID = VAL.MEMBER_ID 
+                              WHERE VM.BLOCK_CODE = '''||pBLOCK||'''   --AND VAL.LOAN_ID = 10
+                                AND APPLY_DATE <= TO_DATE('''||pD2||''',''DDMMRRRR'')) VM 
+                      LEFT JOIN (SELECT APPLY_ID, SUM (LOAN_AMOUT) COLL_AMT 
+                                   FROM VV_DAILY_LOAN_COLL 
+                                  WHERE LOAN_DATE < TO_DATE('''||pD1||''',''DDMMRRRR'') AND IS_POST = ''Y'' --AND APPLY_ID = 269
+                                  GROUP BY APPLY_ID) COL ON COL.APPLY_ID = VM.APPLY_ID
+                      LEFT JOIN (SELECT APPLY_ID, SUM (LOAN_AMOUT) DR_TOT_COLL 
+                                   FROM VV_DAILY_LOAN_COLL VDLC 
+                                   LEFT JOIN (SELECT * FROM (GET_DAYS_LIST (TO_DATE('''||pD1||''',''DDMMRRRR''),TO_DATE('''||pD2||''',''DDMMRRRR''),''DD-MON-RR''))) DID ON DID.DT = VDLC.LOAN_DATE
+                                  WHERE LOAN_DATE BETWEEN TO_DATE('''||pD1||''',''DDMMRRRR'') AND TO_DATE('''||pD2||''',''DDMMRRRR'') --AND APPLY_ID = 269
+                                  GROUP BY APPLY_ID) DTRCOL 
+                                ON DTRCOL.APPLY_ID = VM.APPLY_ID
+                    ) VM
+                      LEFT JOIN (SELECT DID.SRL_NO, APPLY_ID, LOAN_DATE, SUM (LOAN_AMOUT) DR_COLL_AMT 
+                                   FROM VV_DAILY_LOAN_COLL VDLC 
+                                   LEFT JOIN (SELECT * FROM (GET_DAYS_LIST (TO_DATE('''||pD1||''',''DDMMRRRR''),TO_DATE('''||pD2||''',''DDMMRRRR''),''DD-MON-RR''))) DID ON DID.DT = VDLC.LOAN_DATE
+                                  WHERE LOAN_DATE BETWEEN TO_DATE('''||pD1||''',''DDMMRRRR'') AND TO_DATE('''||pD2||''',''DDMMRRRR'') --AND APPLY_ID = 269
+                                  GROUP BY DID.SRL_NO, APPLY_ID, LOAN_DATE) DTRCOL 
+                                ON DTRCOL.APPLY_ID = VM.APPLY_ID
+                )
+             GROUP BY MEMBER_ID, MEMBER_NAME, LOAN_ID, JOINING_DATE   
+             ORDER BY LOAN_ID
+        ) A
+     WHERE (NVL (WEEKLY_REMAINNG,0) <> 0 OR NVL (REMAINING,0) <> 0) 
+      )
     ';
        --- DATA ROWS   vDATASET := vDATASET||'<tbody> 
     --DBMS_OUTPUT.PUT_LINE (vQRY);
+
+   CHECK_ANY_PARAM_VALUE (vQRY);
+   
    OPEN qry_cursor FOR vQRY;
    
    LOOP
@@ -1471,22 +1564,50 @@ FROM (
        
      
 vQRY    := 
-  'SELECT ''<tr><td colspan="4" style="color:red; font-weight:bold; background: rgb(230, 230, 230);">Total</td><td style="color:red; font-weight:bold; background: rgb(230, 230, 230);">''||SUM (WEEKLY_REMAINNG)||''</td>'''||vTrTdsPartSumm||'||''
-  <td style="color:red; font-weight:bold; background: rgb(230, 230, 230);">''||SUM (COLLECTION_AMOUT)||''</td><td style="color:red; font-weight:bold; background: rgb(230, 230, 230);">''||SUM (NVL(REMAINING,0))||''</td></tr>'' TR
+  'SELECT ''<tr><td colspan="4" style="color:red; font-weight:bold; background: rgb(230, 230, 230);">Total</td><td style="color:red; font-weight:bold; background: rgb(230, 230, 230);text-align:right;">''||SUM (NVL(WEEKLY_REMAINNG,0))||''</td>'''||vTrTdsPartSumm||'||''
+  <td style="color:red; font-weight:bold; background: rgb(230, 230, 230);">''||SUM (NVL(COLLECTION_AMOUT,0))||''</td><td style="color:red; font-weight:bold; background: rgb(230, 230, 230);">''||SUM (NVL(REMAINING,0))||''</td></tr>'' TR
 FROM (
-    SELECT A.*, ROWNUM SL_NO FROM (    
-        SELECT VM.MEMBER_NAME, VM.ACCOUNT_NO, VM.JOINING_DATE, (MAX(NVL(REMAIN_LOAN_BALANCE,0)) +  SUM(NVL(LOAN_AMOUT,0))) WEEKLY_REMAINNG,    
-               NVL(REMAIN_LOAN_BALANCE,0) REMAINING,
-                '||vDatesPart||'
-                SUM(NVL(LOAN_AMOUT,0)) COLLECTION_AMOUT
-          FROM VV_DAILY_LOAN_COLL VDLC
-          LEFT JOIN VV_MEMBER VM ON VM.MEMBER_ID = VDLC.MEMBER_ID
-          LEFT JOIN VV_APPLY_LOAN VAL ON VAL.APPLY_ID =  VDLC.APPLY_ID AND VAL.MEMBER_ID = VDLC.MEMBER_ID
-          LEFT JOIN (SELECT * FROM (GET_DAYS_LIST (TO_DATE('''||pD1||''',''DDMMRRRR''),TO_DATE('''||pD2||''',''DDMMRRRR''),''DD-MON-RR''))) DID ON DID.DT = VDLC.LOAN_DATE
-         WHERE  VDLC.LOAN_DATE BETWEEN TO_DATE('''||pD1||''',''DDMMRRRR'') AND TO_DATE('''||pD2||''',''DDMMRRRR'') AND VDLC.IS_POST = ''Y'' AND VM.BLOCK_CODE = '''||pBLOCK||'''
-        GROUP BY MEMBER_NAME, VM.ACCOUNT_NO, VM.JOINING_DATE, REMAIN_LOAN_BALANCE
-        ORDER BY VM.MEMBER_NAME
-        ) A)
+    SELECT A.*, ROWNUM SL_NO 
+      FROM (    
+            SELECT MEMBER_ID, MEMBER_NAME, LOAN_ID, JOINING_DATE, MAX (WEEKLY_REMAINNG) WEEKLY_REMAINNG, MAX (REMAINING_BAL) REMAINING,
+                   '||vDatesPart||'
+                   SUM (NVL (DR_COLL_AMT,0)) COLLECTION_AMOUT
+              FROM
+                (
+                SELECT VM.*,DTRCOL.SRL_NO, DTRCOL.LOAN_DATE LOAN_DATE,DTRCOL.DR_COLL_AMT
+                  FROM
+                    (
+                    SELECT VM.*, COL.COLL_AMT, VM.TOTAL_AMT_WITH_INTEREST - NVL (COL.COLL_AMT, 0) WEEKLY_REMAINNG, NVL (DTRCOL.DR_TOT_COLL, 0) DR_TOT_COLL,
+                           VM.TOTAL_AMT_WITH_INTEREST - NVL (COL.COLL_AMT, 0) - NVL (DTRCOL.DR_TOT_COLL, 0) REMAINING_BAL
+                            --, --DTRCOL.SRL_NO, DTRCOL.LOAN_DATE LOAN_DATE,DTRCOL.DR_COLL_AMT, DTRCOLR.NROWS
+                      FROM  (SELECT VAL.APPLY_ID,VAL.APPLY_DATE JOINING_DATE, VAL.LOAN_ID, 
+                                    VAL.REMAIN_LOAN_BALANCE,VAL.MEMBER_ID, VM.MEMBER_NAME, VAL.TOTAL_AMT_WITH_INTEREST  
+                               FROM VV_MEMBER VM
+                               JOIN VV_APPLY_LOAN VAL ON VM.MEMBER_ID = VAL.MEMBER_ID 
+                              WHERE VM.BLOCK_CODE = '''||pBLOCK||'''   --AND VAL.LOAN_ID = 10
+                                AND APPLY_DATE <= TO_DATE('''||pD2||''',''DDMMRRRR'')) VM 
+                      LEFT JOIN (SELECT APPLY_ID, SUM (LOAN_AMOUT) COLL_AMT 
+                                   FROM VV_DAILY_LOAN_COLL 
+                                  WHERE LOAN_DATE < TO_DATE('''||pD1||''',''DDMMRRRR'') AND IS_POST = ''Y'' --AND APPLY_ID = 269
+                                  GROUP BY APPLY_ID) COL ON COL.APPLY_ID = VM.APPLY_ID
+                      LEFT JOIN (SELECT APPLY_ID, SUM (LOAN_AMOUT) DR_TOT_COLL 
+                                   FROM VV_DAILY_LOAN_COLL VDLC 
+                                   LEFT JOIN (SELECT * FROM (GET_DAYS_LIST (TO_DATE('''||pD1||''',''DDMMRRRR''),TO_DATE('''||pD2||''',''DDMMRRRR''),''DD-MON-RR''))) DID ON DID.DT = VDLC.LOAN_DATE
+                                  WHERE LOAN_DATE BETWEEN TO_DATE('''||pD1||''',''DDMMRRRR'') AND TO_DATE('''||pD2||''',''DDMMRRRR'') --AND APPLY_ID = 269
+                                  GROUP BY APPLY_ID) DTRCOL 
+                                ON DTRCOL.APPLY_ID = VM.APPLY_ID
+                    ) VM
+                      LEFT JOIN (SELECT DID.SRL_NO, APPLY_ID, LOAN_DATE, SUM (LOAN_AMOUT) DR_COLL_AMT 
+                                   FROM VV_DAILY_LOAN_COLL VDLC 
+                                   LEFT JOIN (SELECT * FROM (GET_DAYS_LIST (TO_DATE('''||pD1||''',''DDMMRRRR''),TO_DATE('''||pD2||''',''DDMMRRRR''),''DD-MON-RR''))) DID ON DID.DT = VDLC.LOAN_DATE
+                                  WHERE LOAN_DATE BETWEEN TO_DATE('''||pD1||''',''DDMMRRRR'') AND TO_DATE('''||pD2||''',''DDMMRRRR'') --AND APPLY_ID = 269
+                                  GROUP BY DID.SRL_NO, APPLY_ID, LOAN_DATE) DTRCOL 
+                                ON DTRCOL.APPLY_ID = VM.APPLY_ID
+                )
+             GROUP BY MEMBER_ID, MEMBER_NAME, LOAN_ID, JOINING_DATE   
+             ORDER BY LOAN_ID   
+            ) A
+        )
     ';
     
     --- DATA ROWS   vDATASET := vDATASET||'<tbody> 
@@ -1516,23 +1637,25 @@ vDATASET := vDATASET||'
         <tr>
             <td colspan="4">Accountant Sign</td>
             <td></td>
-            '||vBLANK_TD||'SELECT VM.MEMBER_NAME, CW.WITHDRAW_DATE, VM.ACCOUNT_NO, CW.WITHDRAW_AMT
-FROM VV_COLL_WITHDRAW CW 
-LEFT JOIN VV_MEMBER VM ON VM.MEMBER_ID = CW.MEMBER_ID
-WHERE CW.MEMBER_ID = :P3_MEMBER_ID
+            '||vBLANK_TD||'
             <td></td>
             <td></td>
         </tr>
         
+        
     </tbody>
 
 </table>
+<p style="font-weight:bold;">Date:'||TO_CHAR(SYSDATE,'DD MON RRRR HH24:MI:SS')||'</p>
  ';
 
  RETURN vDATASET;
     
 END GET_LOAN_COLL_REPORT;
 /
+
+
+
 
 
 create or replace FUNCTION  local_wm_concat(p_input VARCHAR2)
