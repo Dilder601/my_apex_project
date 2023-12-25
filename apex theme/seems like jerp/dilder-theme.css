@@ -1,0 +1,338 @@
+:root {
+    --beh-header-bg-color: #fff;
+    --beh-nav-bg-color: #fff;
+    --beh-title-color: #000;
+    --beh-form-label: darkgray;
+    --beh-white-color: #fff;
+    --beh-border: 0rem solid #e2edfa;
+    --beh-box-shadow: 0 0 8px rgba(2, 108, 209, .1);
+    --beh-text-color: #026cd1;
+    --beh-font-heading: Nunito;
+}
+
+.t-Body-contentInner {
+    padding: 4px;
+}
+
+.t-Header-branding {
+    background-color: var(--beh-header-bg-color);
+    color: var(--beh-text-color);
+    padding: 10px;
+}
+
+.t-Button--headerTree {
+    background-color: var(--beh-header-bg-color);
+    border-radius: 20px;
+}
+
+.t-Body-nav {
+    background-color: var(--beh-header-bg-color);
+    color: #000;
+    font-size: 12pt;
+    font-weight: 700;
+}
+
+.t-Region {
+    border-radius: 6px;
+    border: var(--beh-border);
+    box-shadow: var(--beh-box-shadow);
+}
+
+.t-Region.t-Region--scrollBody {
+    border-radius: 10px !important;
+}
+
+.t-Region-title {
+    color: blue;
+    font-size: 12pt;
+}
+
+.t-Form-label {
+    color: blue;
+    font-weight: 600;
+}
+
+.apex-logo-text {
+    color: blue;
+    font-weight: 600;
+}
+
+
+.t-Footer-version {
+    display: inline-block;
+    color: blue;
+}
+
+
+.t-Region-header {
+    border-radius: 6px 6px 0px 0px;
+    border: var(--beh-border);
+    background-color: #fff;
+    box-shadow: var(--beh-box-shadow);
+}
+
+.a-IRR-paginationWrap {
+    border: var(--beh-border);
+    border-radius: 0 0 6px 6px;
+    border-top: 1px solid #e2edfa !important;
+}
+
+.a-IRR-reportView {
+    border: var(--beh-border);
+    border-radius: 0 0 6px 6px;
+    box-shadow: var(--beh-box-shadow);
+}
+
+.a-IRR-toolbar {
+    padding: 4px;
+    border: var(--beh-border);
+}
+
+.a-IRR-noDataMsg {
+    padding: 6px;
+}
+
+.a-IRR-toolbar,
+.a-IRR-search-field {
+    background: var(--beh-white-color);
+    border-color: #ddd;
+}
+
+.a-IRR-header {
+    background-color: var(--beh-white-color) !important;
+    color: var(--beh-text-color) !important;
+    font-size: 9pt;
+}
+
+.a-IRR-headerLink {
+    background-color: var(--beh-white-color) !important;
+    color: var(--beh-text-color) !important;
+    font-size: 9pt;
+}
+
+.a-IRR-headerLink:hover {
+    background-color: var(--beh-white-color) !important;
+    color: var(--beh-text-color) !important;
+    font-size: 9pt;
+}
+
+.a-IRR-table tr td {
+    font-size: 12px;
+    background-color: var(--beh-white-color);
+    color: var(--beh-title-color);
+    height: 1.5rem;
+    border-right: 1px solid #fff !important;
+    padding: 4px;
+}
+
+.u-tC,
+.u-textCenter {
+    border-right: 1px solid #fff !important;
+    border-top: 1px solid #e2edfa !important;
+    border-bottom: 1px solid #e2edfa !important;
+}
+
+.a-IRR-table td {
+    padding: 2px 12px;
+    border-top: 1px solid #fff !important;
+}
+
+.a-IRR-table tr {
+    padding: 2px 12px;
+    border-top: 1px solid #fafafa !important;
+}
+
+.a-IRR-button--search,
+.a-IRR-button--colSearch,
+.a-IRR-button--actions {
+    background-color: var(--beh-white-color) !important;
+}
+
+.t-TreeNav .a-TreeView-node {
+    background-color: var(--beh-nav-bg-color);
+}
+
+.a-TreeView-row.is-hover {
+    background-color: var(--beh-nav-bg-color);
+}
+
+.a-TreeView-row.is-selected {
+    background-color: var(--beh-nav-bg-color);
+}
+
+.a-TreeView-content.is-hover {
+    background-color: var(--beh-nav-bg-color);
+}
+
+#t_TreeNav {
+    border: var(--beh-border);
+    background-color: #fff;
+    box-shadow: var(--beh-box-shadow);
+}
+
+#t_TreeNav ul {
+    background-color: var(--beh-nav-bg-color) !important;
+}
+
+.t-TreeNav .a-TreeView-node--topLevel .a-TreeView-row.is-hover {
+    background-color: var(--beh-nav-bg-color) !important;
+}
+
+.t-TreeNav .a-TreeView-node--topLevel .a-TreeView-row.is-current,
+.t-TreeNav .a-TreeView-node--topLevel .a-TreeView-row.is-selected,
+.t-TreeNav .a-TreeView-node--topLevel .a-TreeView-row.is-current--top.is-selected {
+    background-color: #3c75aa;
+}
+
+
+
+.a-TreeView-content.is-selected {
+    background-color: var(--beh-nav-bg-color);
+}
+
+.a-TreeView-content {
+    background-color: var(--beh-nav-bg-color);
+    border-radius: .25rem;
+}
+
+.t-TreeNav .a-TreeView-label {
+    color: #000;
+}
+
+.a-TreeView-row {
+    border-radius: .25rem
+}
+
+.t-TreeNav .a-TreeView-node--topLevel .a-TreeView-row.is-hover {
+    background-color: var(--beh-nav-bg-color) !important;
+}
+
+.t-TreeNav .a-TreeView-node--topLevel .a-TreeView-row {
+    background-color: var(--beh-nav-bg-color) !important;
+    box-shadow: var(--beh-box-shadow);
+}
+
+li.t-NavigationBar-item.has-username>.t-Button--navBar {
+    padding: 0px;
+}
+
+.t-TreeNav .a-TreeView-content .fa {
+    color: #000;
+}
+
+.t-NavigationBar-item.has-username .t-Button-label {
+    text-transform: none;
+}
+
+#t_TreeNav ul {
+    background-color: var(--beh-nav-bg-color) !important;
+}
+
+.a-TreeView-toggle {
+    color: #000 !important;
+}
+
+
+
+.apex-item-textarea,
+.apex-item-text,
+.apex-item-select,
+.apex-item-multi,
+select.listmanager,
+select.ui-datepicker-month,
+select.ui-datepicker-year,
+.oj-text-field .oj-text-field-container,
+.oj-datepicker-inline .oj-datepicker-content,
+.apex-item-filedrop {
+    height: 25px;
+    font-size: 10pt;
+    color: var(--beh-title-color);
+    background-color: var(--beh-white-color);
+    /*border-color: rgba(175, 189, 253, 1);*/
+    border-radius: 4px;
+}
+
+.apex-item-text.apex-item-datepicker {
+    font-size: 10pt;
+    color: var(--beh-title-color);
+    background-color: var(--beh-white-color);
+    /*border-color: cyan;*/
+    border-radius: 4px 0px 0px 4px;
+}
+
+.apex-item-group--file-browse .apex-item-filedrop-icon {
+    background-color: #fff;
+    padding: 0px 10px 0px 0px;
+}
+
+.apex-item-wrapper--date-picker-jet .oj-inputdatetime-input-trigger {
+    background-color: #f9f9f9;
+    /*border-color: #dfdfdf;*/
+}
+
+.t-Form-itemWrapper .a-Button,
+.t-Form-itemWrapper .apex-item-display-only,
+.t-Form-itemWrapper .apex-item-multi,
+.t-Form-itemWrapper input,
+.t-Form-itemWrapper select,
+.t-Form-itemWrapper textarea {
+    padding-left: 4px;
+    font-size: 10pt;
+    color: var(--beh-title-color);
+    background-color: var(--beh-white-color);
+    /*border-color: rgba(175, 189, 253, 1);*/
+    border-radius: 4px !important;
+}
+
+.apex-item-group--popup-lov .apex-item-popup-lov:not(.apex-item-has-icon) {
+    color: #000 !important;
+    font-size: 10pt;
+}
+
+.fa.fa-2x {
+    font-size: 20px;
+}
+
+.fa.fa-lg {
+    font-size: 20px;
+}
+
+
+.col {
+    padding: .05rem !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+}
+
+
+.a-GV-cell {
+    height: 24px !important;
+    padding: 0px 8px 0px 8px;
+    background-color: #fafafa;
+}
+
+.wrap-cell {
+    max-height: 22px;
+    white-space: normal;
+    overflow: hidden;
+    font-size: 9pt;
+}
+
+.a-GV {
+    font-size: 9pt;
+    line-height: 10px;
+}
+
+
+.a-GV-cell .a-Button.a-Button--actions {
+    --a-button-padding-y: 0px !important;
+    --a-button-padding-x: 0px !important;
+}
+
+.apex-item-text {
+    font-size: 9pt;
+    color: #000;
+    background-color: #fff;
+    border-radius: 2px;
+    padding: 0px;
+}

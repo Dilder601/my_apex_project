@@ -1,0 +1,11 @@
+javascript:
+===========
+#APP_IMAGES#js/demo#MIN#.js
+
+css script:
+===========
+
+#APP_IMAGES#css/demo#MIN#.css
+#APP_IMAGES#css/apexPrintStylesheet#MIN#.css
+#APP_IMAGES#lib/font-awesome-animation/0.1.0/font-awesome-animation#MIN#.css
+
