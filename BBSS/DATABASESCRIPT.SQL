@@ -1675,4 +1675,282 @@ PARALLEL_ENABLE AGGREGATE USING aggr_type;
 /
 
 
+/*
+DECLARE
+     vDATASET    CLOB;
+     vHEADERS    VARCHAR2(4000);
+     vSLNO       NUMBER :=1;
+     vCOL_AMT    NUMBER;
+     vOPEN_BAL   NUMBER;
+     vNOW_BAL    NUMBER;
+     vWITH_AMT   NUMBER;
+BEGIN
+
+    SELECT SUM(VDC.COLLECTION_AMOUT) COLLECTION_AMOUT, MAX(OPENING.OPEN_BAL) OPEN_BAL, MAX(NVL(EXIST_BAL.NOW_BAL,BAL.BALANCE)) NOW_BAL, MAX(WITHDRAW_BAL.WITHDRAW_AMT) WITHDRAW_AMT--, MAX(BAL.BALANCE) BALANCE
+           INTO vCOL_AMT, vOPEN_BAL, vNOW_BAL, vWITH_AMT
+    FROM VV_DAILY_COLLECTION VDC
+    LEFT JOIN VV_MEMBER VM ON VM.MEMBER_ID = VDC.MEMBER_ID
+    LEFT JOIN (
+        -- BEFORE FROM DATE COLLECTED AMOUNT
+        SELECT VDC.MEMBER_ID, SUM(VDC.COLLECTION_AMOUT) OPEN_BAL
+        FROM VV_DAILY_COLLECTION VDC
+        LEFT JOIN VV_MEMBER VM ON VM.MEMBER_ID = VDC.MEMBER_ID 
+        WHERE VDC.COLLECTION_DATE < :P40_DATE_FROM
+         AND VM.ACCOUNT_NO = :P40_ACCOUNT_NO
+        GROUP BY VDC.MEMBER_ID
+    ) OPENING ON OPENING.MEMBER_ID = VDC.MEMBER_ID
+    LEFT JOIN (
+        --- AFTER TO DATE COLLECTED AMOUNT
+        SELECT VDC.MEMBER_ID, SUM(VDC.COLLECTION_AMOUT) NOW_BAL
+        FROM VV_DAILY_COLLECTION VDC
+        LEFT JOIN VV_MEMBER VM ON VM.MEMBER_ID = VDC.MEMBER_ID 
+        WHERE VDC.COLLECTION_DATE > :P40_DATE_TO
+         AND VM.ACCOUNT_NO = :P40_ACCOUNT_NO
+        GROUP BY VDC.MEMBER_ID
+    ) EXIST_BAL ON EXIST_BAL.MEMBER_ID = VDC.MEMBER_ID
+    LEFT JOIN 
+                (
+                    ----- REMAIN BALANCE COLLECTED AMOUNT
+                    SELECT (A.COL_AMT - A.WITHDRAW_AMT) BALANCE , A.MEMBER_ID
+                    FROM 
+                        (
+                            SELECT MAX(NVL(COLL.COL_AMT,0)) COL_AMT, SUM(NVL(WITHDRAW_AMT,0)) WITHDRAW_AMT, COLL.MEMBER_ID
+                            FROM 
+                                (
+                                    SELECT SUM(NVL(VDC.COLLECTION_AMOUT,0)) COL_AMT, VDC.MEMBER_ID
+                                    FROM VV_DAILY_COLLECTION VDC
+                                     LEFT JOIN VV_MEMBER VM ON VM.MEMBER_ID = VDC.MEMBER_ID
+                                    WHERE VM.ACCOUNT_NO = :P40_ACCOUNT_NO 
+                                    GROUP BY VDC.MEMBER_ID
+                                ) COLL
+                            LEFT JOIN VV_COLL_WITHDRAW VCW ON VCW.MEMBER_ID =  COLL.MEMBER_ID
+                            GROUP BY COLL.MEMBER_ID
+                        ) A 
+                ) BAL ON BAL.MEMBER_ID = VDC.MEMBER_ID
+     LEFT JOIN 
+                (
+                    SELECT SUM(VCW.WITHDRAW_AMT) WITHDRAW_AMT, VCW.MEMBER_ID
+                     FROM VV_COLL_WITHDRAW VCW
+                     LEFT JOIN VV_MEMBER VM ON VM.MEMBER_ID = VCW.MEMBER_ID
+                     WHERE VM.ACCOUNT_NO = :P40_ACCOUNT_NO 
+                       AND VCW.WITHDRAW_DATE BETWEEN :P40_DATE_FROM AND  :P40_DATE_TO
+                     GROUP BY VCW.MEMBER_ID 
+                ) WITHDRAW_BAL ON WITHDRAW_BAL.MEMBER_ID = VM.MEMBER_ID
+    WHERE VDC.COLLECTION_DATE BETWEEN :P40_DATE_FROM AND  :P40_DATE_TO
+      AND VM.ACCOUNT_NO = :P40_ACCOUNT_NO;
+
+    vDATASET := vDATASET||' <input id="b_print" type="button" class="t-Button01_526" style="float:right;"  onclick="printdiv(''div_print'');" value=" Print " onload="openWindow.print()">';
+    vDATASET := vDATASET||' <input id="b_print" type="button" class="t-Button02_526" style="float:right;"  onClick="tableToExcel(''div_print'');" value=" Excel ">'; 
+    --vDATA_OUTPUT := vDATA_OUTPUT||'<input id="b_exit" type="button" class="t-Button01_526" style="float:right;"  onClick="onClick="window.location.href=''f?p=&APP_ID.:9:&APP_SESSION.''" value="Create New Invoice">';
+     vDATASET := vDATASET||'<div id="div_print">';  
+
+vDATASET := vDATASET||' <body>';
+
+
+
+vDATASET := vDATASET||'      
+     <div class="company-info"> 
+            <h2 class="com-title">Bhai Bhai Shramjibi Cooperative Society Ltd.</h2> 
+            <p style="font-weight:bold;">  Address: 24/2 Maniknagar,Mugda, Wari, Dhaka-1203</p>
+            <p> Statement Report</p>
+    </div>';
+
+       FOR USER_INFO IN (SELECT MEMBER_NAME, ACCOUNT_NO, JOINING_DATE, MEMBER_ADDRESS, BLOCK_CODE
+                           FROM VV_MEMBER
+                           WHERE ACCOUNT_NO = :P40_ACCOUNT_NO
+                         ) LOOP
+ 
+                         
+vDATASET := vDATASET||'       
+    <div class="user">
+        <div class="user-info"> 
+            <h3>Joining Date: '||TO_CHAR(USER_INFO.JOINING_DATE,'DD-MON-RRRR')||'</h3>
+            <h3>Address: '||USER_INFO.MEMBER_ADDRESS||'</h3>
+            <h4>Block: '||USER_INFO.BLOCK_CODE||'</h4>
+        </div>
+  
+         <div class="user-info2"> 
+            <h3>Account Name: '||USER_INFO.MEMBER_NAME||'</h3>
+            <h3>Acconut No: '||USER_INFO.ACCOUNT_NO||'</h3> 
+            <h4>Statement Period: '||:P40_DATE_FROM||' to '||:P40_DATE_TO||'</h4>
+            </div>
+        </div>';
+
+    END LOOP;
+
+    FOR BAL IN (SELECT SUM(VDC.COLLECTION_AMOUT) COLLECTION_AMOUT, MAX(OPENING.OPEN_BAL) OPEN_BAL, MAX(NVL(EXIST_BAL.NOW_BAL,BAL.BALANCE)) NOW_BAL, MAX(WITHDRAW_BAL.WITHDRAW_AMT) WITHDRAW_AMT--, MAX(BAL.BALANCE) BALANCE
+                       INTO vCOL_AMT, vOPEN_BAL, vNOW_BAL, vWITH_AMT
+                FROM VV_DAILY_COLLECTION VDC
+                LEFT JOIN VV_MEMBER VM ON VM.MEMBER_ID = VDC.MEMBER_ID
+                LEFT JOIN (
+                    -- BEFORE FROM DATE COLLECTED AMOUNT
+                    SELECT VDC.MEMBER_ID, SUM(VDC.COLLECTION_AMOUT) OPEN_BAL
+                    FROM VV_DAILY_COLLECTION VDC
+                    LEFT JOIN VV_MEMBER VM ON VM.MEMBER_ID = VDC.MEMBER_ID 
+                    WHERE VDC.COLLECTION_DATE < :P40_DATE_FROM
+                     AND VM.ACCOUNT_NO = :P40_ACCOUNT_NO
+                    GROUP BY VDC.MEMBER_ID
+                ) OPENING ON OPENING.MEMBER_ID = VDC.MEMBER_ID
+                LEFT JOIN (
+                    --- AFTER TO DATE COLLECTED AMOUNT
+                    SELECT VDC.MEMBER_ID, SUM(VDC.COLLECTION_AMOUT) NOW_BAL
+                    FROM VV_DAILY_COLLECTION VDC
+                    LEFT JOIN VV_MEMBER VM ON VM.MEMBER_ID = VDC.MEMBER_ID 
+                    WHERE VDC.COLLECTION_DATE > :P40_DATE_TO
+                     AND VM.ACCOUNT_NO = :P40_ACCOUNT_NO
+                    GROUP BY VDC.MEMBER_ID
+                ) EXIST_BAL ON EXIST_BAL.MEMBER_ID = VDC.MEMBER_ID
+                LEFT JOIN 
+                            (
+                                ----- REMAIN BALANCE COLLECTED AMOUNT
+                                SELECT (A.COL_AMT - A.WITHDRAW_AMT) BALANCE , A.MEMBER_ID
+                                FROM 
+                                    (
+                                        SELECT MAX(NVL(COLL.COL_AMT,0)) COL_AMT, SUM(NVL(WITHDRAW_AMT,0)) WITHDRAW_AMT, COLL.MEMBER_ID
+                                        FROM 
+                                            (
+                                                SELECT SUM(NVL(VDC.COLLECTION_AMOUT,0)) COL_AMT, VDC.MEMBER_ID
+                                                FROM VV_DAILY_COLLECTION VDC
+                                                 LEFT JOIN VV_MEMBER VM ON VM.MEMBER_ID = VDC.MEMBER_ID
+                                                WHERE VM.ACCOUNT_NO = :P40_ACCOUNT_NO 
+                                                GROUP BY VDC.MEMBER_ID
+                                            ) COLL
+                                        LEFT JOIN VV_COLL_WITHDRAW VCW ON VCW.MEMBER_ID =  COLL.MEMBER_ID
+                                        GROUP BY COLL.MEMBER_ID
+                                    ) A 
+                            ) BAL ON BAL.MEMBER_ID = VDC.MEMBER_ID
+                 LEFT JOIN 
+                            (
+                                SELECT SUM(VCW.WITHDRAW_AMT) WITHDRAW_AMT, VCW.MEMBER_ID
+                                 FROM VV_COLL_WITHDRAW VCW
+                                 LEFT JOIN VV_MEMBER VM ON VM.MEMBER_ID = VCW.MEMBER_ID
+                                 WHERE VM.ACCOUNT_NO = :P40_ACCOUNT_NO 
+                                   AND VCW.WITHDRAW_DATE BETWEEN :P40_DATE_FROM AND  :P40_DATE_TO
+                                 GROUP BY VCW.MEMBER_ID 
+                            ) WITHDRAW_BAL ON WITHDRAW_BAL.MEMBER_ID = VM.MEMBER_ID
+                WHERE VDC.COLLECTION_DATE BETWEEN :P40_DATE_FROM AND  :P40_DATE_TO
+                  AND VM.ACCOUNT_NO = :P40_ACCOUNT_NO
+                ) LOOP
+
+vDATASET := vDATASET||'      
+     <div class="account-summary"> 
+       <h2 class="summary-title">Account Summary</h2>
+       <p>Balance In '||:P40_DATE_FROM||': '||BAL.OPEN_BAL||'</p>
+       <p>Total Money In :'||BAL.COLLECTION_AMOUT||'</p>
+       <p>Total Money Out :'||BAL.WITHDRAW_AMT||'</p>
+       <p>Balance In '||:P40_DATE_TO||': '||BAL.NOW_BAL||'</p>
+    </div>';
+
+    END LOOP;
+
+vDATASET := vDATASET||'     
+     <table>';
+
+        
+
+      vDATASET := vDATASET||'      
+      <thead>
+             <tr>
+                 <th>Date</th>
+                 <th>Description</th> 
+                 <th>Deposit</th>
+                 <th>Withdraw</th>
+                 <th>Balance</th>
+             </tr>
+         </thead>
+         <tbody>';
+
+        vDATASET := vDATASET||'
+             <tr>
+                 <td colspan="4" style="text-align:left; border-right: none;">Previous Balance</td>
+                 <td style="text-align:right; border-left: none;">'||vOPEN_BAL||'</td>
+             </tr>';
+
+        FOR C1 IN (
+                SELECT DATA.*, OPEN_BAL+BALANCE  MAIN_BAL
+                FROM 
+                (
+                   SELECT ROWNUM, DT.*, SUM(DT.COLLECTION_AMOUNT -  NVL (DT.WITHDRAW_AMT, 0)) OVER (ORDER BY ROWNUM)   AS BALANCE 
+                     FROM (
+                      SELECT A.ACCOUNT_NO,
+                             CASE
+                                 WHEN A.COLLECTION_DATE IS NULL THEN A.WITHDRAW_DATE
+                                 ELSE A.COLLECTION_DATE
+                             END COLLECTION_DATE,
+                             A.COLLECTION_AMOUNT,
+                             A.WITHDRAW_DATE,
+                             A.WITHDRAW_AMT,
+                             NVL (A.COLLECTION_AMOUNT, 0) - NVL (A.WITHDRAW_AMT, 0) BAL  
+                        FROM (  SELECT VM.ACCOUNT_NO,
+                                       VDC.COLLECTION_DATE,
+                                       SUM (NVL (VDC.COLLECTION_AMOUT, 0))     COLLECTION_AMOUNT,
+                                       NULL WITHDRAW_DATE,
+                                       0 WITHDRAW_AMT
+                                  FROM VV_MEMBER VM
+                                  LEFT JOIN VV_DAILY_COLLECTION VDC ON VDC.MEMBER_ID = VM.MEMBER_ID
+                                 WHERE VM.COLLECTED_AMOUNT > 0
+                              GROUP BY VM.ACCOUNT_NO, VDC.COLLECTION_DATE
+                                HAVING VM.ACCOUNT_NO = :P40_ACCOUNT_NO 
+                                   AND VDC.COLLECTION_DATE BETWEEN :P40_DATE_FROM AND  :P40_DATE_TO
+                              UNION ALL
+                                SELECT VM.ACCOUNT_NO,
+                                       NULL COLLECTION_DATE,
+                                       0 COLLECTION_AMOUNT,
+                                       VCW.WITHDRAW_DATE,
+                                       SUM (NVL (VCW.WITHDRAW_AMT, 0))     WITHDRAW_AMT
+                                  FROM VV_MEMBER VM
+                                  LEFT JOIN VV_COLL_WITHDRAW VCW ON VCW.MEMBER_ID = VM.MEMBER_ID
+                                 WHERE VCW.WITHDRAW_AMT > 0
+                              GROUP BY VCW.WITHDRAW_DATE, VM.ACCOUNT_NO
+                                HAVING VM.ACCOUNT_NO = :P40_ACCOUNT_NO 
+                                   AND VCW.WITHDRAW_DATE  BETWEEN :P40_DATE_FROM AND  :P40_DATE_TO 
+                              ORDER BY COLLECTION_DATE, WITHDRAW_DATE
+                              ) A
+                    ORDER BY COLLECTION_DATE
+                  ) DT
+                ) DATA 
+            LEFT JOIN (
+                SELECT VM.ACCOUNT_NO, SUM(VDC.COLLECTION_AMOUT) OPEN_BAL
+                FROM VV_DAILY_COLLECTION VDC
+                LEFT JOIN VV_MEMBER VM ON VM.MEMBER_ID = VDC.MEMBER_ID 
+                WHERE VDC.COLLECTION_DATE < :P40_DATE_FROM
+                 AND VM.ACCOUNT_NO = :P40_ACCOUNT_NO
+                GROUP BY VM.ACCOUNT_NO
+            ) OPENING ON OPENING.ACCOUNT_NO = DATA.ACCOUNT_NO
+    ) LOOP
+
+vDATASET := vDATASET||' 
+             <tr>
+                 <td>'||TO_CHAR(C1.COLLECTION_DATE,'DD-MON-RRRR')||'</td>
+                 <td>Transaction '||vSLNO||'</td> 
+                 <td>'||C1.COLLECTION_AMOUNT||'</td>
+                 <td>'||C1.WITHDRAW_AMT||'</td>
+                 <td class="balance">'||C1.MAIN_BAL||'</td>
+             </tr>
+             
+         </tbody>';
+
+    END LOOP;
+  vDATASET := vDATASET||'
+    <tfoot>
+            <tr>
+                <td colspan="2"> Ending Balance </td>
+                <td colspan="4" class="total-balacne"> '||vNOW_BAL||' </td>
+             </tr>
+         </tfoot>
+     </table>
+
+     <div class="footer">
+        <p style="border-top: 1px solid #000;margin-top: 30px;">Field Officer </p>
+        <p style="border-top: 1px solid #000;margin-top: 30px;">Account </p>
+        <p style="border-top: 1px solid #000;margin-top: 30px;">Manager </p>
+     </div>
+';
+
+RETURN vDATASET;
+
+END;
+*/
+
+
 
