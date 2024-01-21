@@ -1148,7 +1148,7 @@ EXCEPTION
 END dfn_get_string_splitted;
 /
 
-CREATE OR REPLACE FUNCTION BBSS.GET_CLOSING_REPORT (pD1 VARCHAR2, pD2 VARCHAR2, pBLOCK VARCHAR2)
+create or replace FUNCTION GET_CLOSING_REPORT (pD1 VARCHAR2, pD2 VARCHAR2, pBLOCK VARCHAR2)
 RETURN CLOB
 IS
     vDATASET            CLOB;
@@ -1167,11 +1167,13 @@ IS
     vTR_REC             VARCHAR2(4000);
     vWITHDRAW_ROW       NUMBER := 0;
     vWITHDRAW           NUMBER := 0;
+    vDATE_FROM          VARCHAR2(40) := TO_CHAR(TO_DATE(pD1),'DD-MON-RR');
+    vDATE_TO            VARCHAR2(40) := TO_CHAR(TO_DATE(pD1),'DD-MON-RR');
 BEGIN
 
     vDATASET := vDATASET||' <input id="b_print" type="button" class="t-Button01_526" style="float:right;"  onclick="printdiv(''div_print'');" value=" Print " onload="openWindow.print()">';
     vDATASET := vDATASET||' <input id="b_print" type="button" class="t-Button02_526" style="float:right;"  onClick="tableToExcel(''div_print'');" value=" Excel ">'; 
-    vDATASET := vDATASET||'<div id="div_print">';  
+    vDATASET := vDATASET||'<div id="div_print" class="table-scroll">';  
 
     vNO_OF_DAYS := (TO_DATE(pD2,'DDMMRRRR') - TO_DATE(pD1,'DDMMRRRR')) + 1;
 
@@ -1208,7 +1210,7 @@ BEGIN
         <div class="coll-info">
             <p style="font-weight:bold;">Field Officer: '||vMEMBER_NAME||' </p>
             <p style="font-weight:bold;">Block: '||pBLOCK||'</p>
-            <p style="font-weight:bold;">Date:'||TO_CHAR(SYSDATE,'DD MON RRRR HH12:MI:SS')||'</p>
+            <p style="font-weight:bold;">Statement Period:'||vDATE_FROM||' to '||vDATE_TO||'</p> 
         </div>
     ';
 
@@ -1271,13 +1273,13 @@ SELECT VDC.MEMBER_ID,  SUM(NVL(COLLECTION_AMOUT,0)) -  MAX(NVL(WITHDRAW_AMT.WITH
 FROM VV_DAILY_COLLECTION VDC
 LEFT JOIN (
 SELECT VCW.MEMBER_ID,
-VCW.WITHDRAW_DATE,   
+--VCW.WITHDRAW_DATE,   
 SUM(VCW.WITHDRAW_AMT) WITHDRAW_AMT
 FROM VV_COLL_WITHDRAW VCW
 LEFT JOIN VV_MEMBER VM ON VM.MEMBER_ID = VCW.MEMBER_ID
 LEFT JOIN VV_CLOSING_SCHEDULE VCS ON VCS.SCHEDULE_ID = VCW.SCHEDULE_ID
 WHERE  VCW.WITHDRAW_DATE < TO_DATE('''||pD1||''',''DDMMRRRR'') 
-GROUP BY VCW.MEMBER_ID, VCW.WITHDRAW_DATE
+GROUP BY VCW.MEMBER_ID--, VCW.WITHDRAW_DATE
 ) WITHDRAW_AMT ON WITHDRAW_AMT.MEMBER_ID = VDC.MEMBER_ID
 WHERE VDC.COLLECTION_DATE < TO_DATE('''||pD1||''',''DDMMRRRR'')  AND VDC.IS_POST = ''Y'' 
 GROUP BY  VDC.MEMBER_ID
@@ -1339,13 +1341,13 @@ SELECT VDC.MEMBER_ID,  SUM(NVL(COLLECTION_AMOUT,0)) -  MAX(NVL(WITHDRAW_AMT.WITH
 FROM VV_DAILY_COLLECTION VDC
 LEFT JOIN (
 SELECT VCW.MEMBER_ID,
-VCW.WITHDRAW_DATE,   
+--VCW.WITHDRAW_DATE,   
 SUM(VCW.WITHDRAW_AMT) WITHDRAW_AMT
 FROM VV_COLL_WITHDRAW VCW
 LEFT JOIN VV_MEMBER VM ON VM.MEMBER_ID = VCW.MEMBER_ID
 LEFT JOIN VV_CLOSING_SCHEDULE VCS ON VCS.SCHEDULE_ID = VCW.SCHEDULE_ID
 WHERE  VCW.WITHDRAW_DATE < TO_DATE('''||pD1||''',''DDMMRRRR'') 
-GROUP BY VCW.MEMBER_ID, VCW.WITHDRAW_DATE
+GROUP BY VCW.MEMBER_ID---, VCW.WITHDRAW_DATE
 ) WITHDRAW_AMT ON WITHDRAW_AMT.MEMBER_ID = VDC.MEMBER_ID
 WHERE VDC.COLLECTION_DATE < TO_DATE('''||pD1||''',''DDMMRRRR'')  AND VDC.IS_POST = ''Y'' 
 GROUP BY  VDC.MEMBER_ID
@@ -1395,6 +1397,7 @@ vDATASET := vDATASET||'
     </tbody>
 
 </table>
+<p style="font-weight:bold;">Print:'||TO_CHAR(SYSDATE,'DD MON RRRR HH24:MI:SS')||'</p> 
  ';
 
  RETURN vDATASET;
