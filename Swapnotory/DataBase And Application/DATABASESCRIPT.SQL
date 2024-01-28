@@ -831,6 +831,7 @@ END;
    ) ;
 /
 
+
    CREATE SEQUENCE  "VV_MEMBER_SQ"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 9 NOCACHE  NOORDER  NOCYCLE  NOKEEP  NOSCALE  GLOBAL ;
 /
 
@@ -850,6 +851,137 @@ BEGIN
 	END IF;
 END;
 /
+
+
+CREATE TABLE ST_MEMBER_CHARITY ("CHARITY_ID"        NUMBER,
+                                "CHARITY_DATE"      DATE,
+                                "MEMBER_ID"         NUMBER,
+                                "CHARITY_YEAR"      NUMBER,
+                                "CHARITY_MONTH"     NUMBER,
+                                "YEAR_FROM"         NUMBER,
+                                "YEAR_TO"           NUMBER,
+                                "MONTH_FROM"        NUMBER,
+                                "MONTH_TO"          NUMBER,
+                                "TOTAL_CHARITY"     NUMBER,
+                                "INST_ID"           NUMBER, 
+                                "STATUS"            VARCHAR2(10) DEFAULT '1' NOT NULL ENABLE, 
+                                "CREATED_BY"        NUMBER(10,0) NOT NULL ENABLE, 
+                                "CREATED_AT"        TIMESTAMP (6) DEFAULT SYSDATE NOT NULL ENABLE, 
+                                "UPDATED_BY"        NUMBER(10,0), 
+                                "UPDATED_AT"        TIMESTAMP (6),
+	                            PRIMARY KEY ("CHARITY_ID")
+                                );
+/
+
+ CREATE SEQUENCE  "ST_CHARITY_SQ"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 9 NOCACHE  NOORDER  NOCYCLE  NOKEEP  NOSCALE  GLOBAL ;
+/
+
+
+  CREATE OR REPLACE  TRIGGER "ST_CHARITY_BR_TRI" 
+    BEFORE INSERT 
+    ON ST_MEMBER_CHARITY 
+    FOR EACH ROW
+BEGIN
+    IF INSERTING THEN
+        IF (:NEW.CHARITY_ID) IS NULL THEN
+            :NEW.CHARITY_ID :=  ST_CHARITY_SQ.NEXTVAL;  
+           -- :NEW.REMAIN_LOAN_BALANCE := :NEW.TOTAL_AMT_WITH_INTEREST;
+        END IF;
+    ELSIF UPDATING THEN
+		--:NEW.UPDATED_BY := NVL(GET_USER_ID(v('APP_USER')),1);
+		:NEW.UPDATED_AT := SYSDATE;
+	END IF;
+END;
+/
+
+/*
+//   s
+
+-- current to fast 10 years
+
+SELECT TO_CHAR(SYSDATE,'YYYY')+LEVEL  YEAR_DT, TO_CHAR(SYSDATE,'YYYY')+LEVEL  YEAR_RT
+FROM DUAL
+CONNECT BY LEVEL <= 10
+UNION ALL
+SELECT TO_CHAR(SYSDATE,'YYYY') +0 YEAR_DT, TO_CHAR(SYSDATE,'YYYY') +0 YEAR_RT
+FROM DUAL
+ORDER BY 1 ASC;
+
+//
+
+--- month list
+
+SELECT ELEMENT_NAME, ELEMENT_ID 
+FROM ADM_CODE_ELEMENTS 
+WHERE CODE_ID = 34
+AND STATUS = 1
+ORDER BY ELEMENT_ID ASC;
+
+-- member_list
+
+SELECT  ACCOUNT_NO||' - '||MEMBER_NAME MEMBER_NAME, VM.MEMBER_ID
+FROM   VV_MEMBER VM  
+WHERE VM.STATUS = 1
+--AND VM.BLOCK_CODE in (SELECT TRIM(STR_VALUE) FROM DFN_GET_STRING_SPLITTED (DFN_GET_BLOCK_ID(:APP_USER),','))
+ORDER BY  VM.ACCOUNT_NO ASC
+
+
+SELECT TO_CHAR(SYSDATE,'YYYY') FROM DUAL;
+
+SELECT CASE 
+            WHEN TRIM(TO_CHAR(SYSDATE,'MONTH')) = 'JANUARY' THEN 55
+            WHEN TRIM(TO_CHAR(SYSDATE,'MONTH')) = 'FEBRUARY' THEN 55
+            WHEN TRIM(TO_CHAR(SYSDATE,'MONTH')) = 'MARCH' THEN 55
+            WHEN TRIM(TO_CHAR(SYSDATE,'MONTH')) = 'APRIL' THEN 55
+            WHEN TRIM(TO_CHAR(SYSDATE,'MONTH')) = 'MAY' THEN 55
+            WHEN TRIM(TO_CHAR(SYSDATE,'MONTH')) = 'JUNE' THEN 55
+            WHEN TRIM(TO_CHAR(SYSDATE,'MONTH')) = 'JULY' THEN 55
+            WHEN TRIM(TO_CHAR(SYSDATE,'MONTH')) = 'AUGUST' THEN 55
+            WHEN TRIM(TO_CHAR(SYSDATE,'MONTH')) = 'SEPTEMBER' THEN 55
+            WHEN TRIM(TO_CHAR(SYSDATE,'MONTH')) = 'OCTOBER' THEN 55
+            WHEN TRIM(TO_CHAR(SYSDATE,'MONTH')) = 'NOVEMBER' THEN 55
+            WHEN TRIM(TO_CHAR(SYSDATE,'MONTH')) = 'DECEMBER' THEN 55
+            END MON_DT
+  FROM DUAL;
+
+SELECT NO_OF_SHARE
+FROM VV_MEMBER
+WHERE MEMBER_ID = :P8_MEMBER_ID;
+
+
+
+SELECT DFN_GET_INST_USER_ID (v('APP_USER')) DT 
+--coalesce(sys_context('APEX$SESSION','APP_USER'),user);
+FROM DUAL;
+
+
+
+
+DECLARE
+
+BEGIN
+    FOR I IN (
+                SELECT VDC.COLLECTION_ID
+                  FROM VV_DAILY_COLLECTION  VDC JOIN VV_MEMBER VM ON VM.MEMBER_ID = VDC.MEMBER_ID
+                  WHERE VDC.IS_POST = 'S'
+             ) LOOP
+
+        UPDATE VV_DAILY_COLLECTION
+           SET IS_POST = 'Y',
+               UPDATED_BY = DFN_GET_INST_USER_ID (V('APP_USER')),
+               UPDATED_AT = SYSDATE
+         WHERE COLLECTION_ID = I.COLLECTION_ID; 
+
+    END LOOP;
+
+END;
+
+#APP_FILES#dilder-theme.css
+https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css
+
+*/
+
+
 
 
 create or replace TYPE  AGGR_TYPE  AS OBJECT
