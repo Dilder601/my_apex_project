@@ -979,6 +979,69 @@ END;
 #APP_FILES#dilder-theme.css
 https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css
 
+
+
+
+.apex-logo-text{
+    color:blue;
+    font-weight:600;
+}
+
+
+.t-Footer-version {
+    display: inline-block;
+    color: blue;
+}
+
+.t-Region-title {
+    color: blue;
+    font-size: 12pt;
+}
+
+.t-Form-label{
+    color: blue;
+    font-weight: 600;
+}
+.a-TreeView-node.a-TreeView-node--topLevel ul {
+    margin-left: 15px;
+}
+.a-TreeView-row:focus,
+.a-TreeView-toggle:focus,
+.a-TreeView-node:focus {
+    outline: none;
+}
+
+
+.t-Button01_526{
+    float: right;
+    background-color: blue;
+    color: white;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.t-Button02_526{
+    float: right;
+    background-color: green;
+    color: white;
+    border-radius: 10px;
+    margin-right: 5px;
+    font-weight: 600;
+}
+
+
+
+
+div#t_Body_nav {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 999;
+}
+
+class="t-Button t-Button--simple t-Button--hot t-Button--stretch"
+
+
 */
 
 
