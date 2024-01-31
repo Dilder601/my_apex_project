@@ -86,6 +86,52 @@ BEGIN
 END;
 /
 
+CREATE TABLE ST_EXPENSES
+(
+    EXPENSE_ID        NUMBER PRIMARY KEY,
+    DESCRIPTION       VARCHAR2 (1000),
+    EXPENSE_DATE      DATE,
+    CATEGORY_ID       VARCHAR2 (50),
+    PAYMENT_METHOD    VARCHAR2 (50),
+    EXP_AMOUNT        NUMBER,
+    NOTES             VARCHAR2 (1000),
+    EXPENSE_DOC       BLOB,
+    SORT_ORDER        NUMBER (10, 0),
+    STATUS            VARCHAR2 (10) DEFAULT '1' NOT NULL ENABLE,
+    CREATED_BY        NUMBER (10, 0) NOT NULL ENABLE,
+    CREATED_AT        TIMESTAMP (6) DEFAULT SYSDATE NOT NULL ENABLE,
+    UPDATED_BY        NUMBER (10, 0),
+    UPDATED_AT        TIMESTAMP (6)
+);
+/
+
+
+CREATE SEQUENCE ST_EXP_SQ START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
+/
+
+CREATE OR REPLACE TRIGGER "ST_EXPENSES_BR_TRI" 
+BEFORE UPDATE OR INSERT OR DELETE
+ON ST_EXPENSES
+FOR EACH ROW
+BEGIN
+
+	IF INSERTING THEN
+		IF(:NEW.EXPENSE_ID IS NULL) THEN
+			:NEW.EXPENSE_ID := ST_EXP_SQ.NEXTVAL;
+		END IF;
+		 :NEW.CREATED_BY := NVL(GET_USER_ID(v('APP_USER')),1);
+		:NEW.CREATED_AT := SYSDATE;
+	ELSIF UPDATING THEN
+		 :NEW.UPDATED_BY := NVL(GET_USER_ID(v('APP_USER')),1);
+		:NEW.UPDATED_AT := SYSDATE;
+	END IF;
+
+END;
+/
+
+
+
+
 CREATE TABLE "ADM_INSTITUTE" 
    (	"INST_ID" NUMBER, 
 	"INST_NAME" VARCHAR2(100), 
@@ -916,7 +962,7 @@ FROM ADM_CODE_ELEMENTS
 WHERE CODE_ID = 34
 AND STATUS = 1
 ORDER BY ELEMENT_ID ASC;
-
+33
 -- member_list
 
 SELECT  ACCOUNT_NO||' - '||MEMBER_NAME MEMBER_NAME, VM.MEMBER_ID
@@ -950,8 +996,7 @@ WHERE MEMBER_ID = :P8_MEMBER_ID;
 
 
 
-SELECT DFN_GET_INST_USER_ID (v('APP_USER')) DT 
---coalesce(sys_context('APEX$SESSION','APP_USER'),user);
+SELECT DFN_GET_INST_USER_ID (v('APP_USER')) DT  
 FROM DUAL;
 
 
@@ -1040,6 +1085,35 @@ div#t_Body_nav {
 }
 
 class="t-Button t-Button--simple t-Button--hot t-Button--stretch"
+
+
+
+<div>
+        <h1 style="color: blue;"> Are you sure? </h1> <br>
+        <p style="color: black; font-weight:600;">  You want to proceed.</p>
+</div>
+
+
+
+
+P7_APP_USER
+
+SELECT DFN_GET_ROLE_ID(:APP_USER) FROM DUAL;
+
+
+CASE 
+WHEN NVL(dbms_lob.getlength("EXPENSE_DOC"),0) = 0   THEN '<span aria-hidden="true" class="fa fa-user-circle-o fa-5x" style="width: 92px !important; height: 92px !important; -moz-border-radius: 4px; -webkit-border-radius: 4px; border:2px solid; justify-content: center; align-items: center; display: flex;"></span>' 
+ELSE
+decode (nvl(dbms_lob.getlength("EXPENSE_DOC"),0),0,NULL,
+'<IMG SRC =" '||
+apex_util.get_blob_file_src('P50_EXPENSE_DOC',EXPENSE_ID)|| ' "width="80"/>') 
+end "EXPENSE_DOC",
+
+
+MEMBER_PICTURE
+
+
+
 
 
 */
