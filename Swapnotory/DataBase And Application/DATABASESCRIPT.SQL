@@ -129,6 +129,85 @@ BEGIN
 END;
 /
 
+CREATE TABLE ST_PROJECTS (PROJECT_ID NUMBER PRIMARY KEY, 
+                          PROJECT_DATE DATE,
+                          TEAM VARCHAR2(10),
+                          PROJECT_NAME VARCHAR2(255),
+                          PROJECT_DESCRIPTION VARCHAR2(1000),
+                          PROJECT_DURATION VARCHAR2(100),
+                          PROJECT_BUDGET NUMBER,
+                          PROJECT_INVESTMENT NUMBER,
+                          PROJECT_STATUS NUMBER,
+                          PROJECT_STATISTICS NUMBER,
+                          PROJECT_END_STATUS VARCHAR2(100),
+                          SORT_ORDER        NUMBER (10, 0),
+                          STATUS            VARCHAR2 (10) DEFAULT '1' NOT NULL ENABLE,
+                          CREATED_BY        NUMBER (10, 0) NOT NULL ENABLE,
+                          CREATED_AT        TIMESTAMP (6) DEFAULT SYSDATE NOT NULL ENABLE,
+                          UPDATED_BY        NUMBER (10, 0),
+                          UPDATED_AT        TIMESTAMP (6)
+                          );
+/
+
+CREATE SEQUENCE ST_PROJECTS_SQ START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
+/
+
+CREATE OR REPLACE TRIGGER "ST_PROJECTS_BR_TRI" 
+BEFORE UPDATE OR INSERT OR DELETE
+ON ST_PROJECTS
+FOR EACH ROW
+BEGIN
+
+	IF INSERTING THEN
+		IF(:NEW.PROJECT_ID IS NULL) THEN
+			:NEW.PROJECT_ID := ST_PROJECTS_SQ.NEXTVAL;
+		END IF;
+		 :NEW.CREATED_BY := DFN_GET_INST_USER_ID (v('APP_USER'));
+		 :NEW.CREATED_AT := SYSDATE;
+         :NEW.STATUS := '1';
+	ELSIF UPDATING THEN
+		 :NEW.UPDATED_BY := DFN_GET_INST_USER_ID (v('APP_USER'));
+		 :NEW.UPDATED_AT := SYSDATE;
+	END IF;
+
+END;
+/
+
+CREATE TABLE ST_PROJECT_DOCS (PRO_DOC_ID NUMBER PRIMARY KEY, 
+                              PROJECT_ID NUMBER,
+                              PROJECT_DOC BLOB, 
+                              SORT_ORDER        NUMBER (10, 0),
+                              STATUS            VARCHAR2 (10) DEFAULT '1' NOT NULL ENABLE,
+                              CREATED_BY        NUMBER (10, 0) NOT NULL ENABLE,
+                              CREATED_AT        TIMESTAMP (6) DEFAULT SYSDATE NOT NULL ENABLE,
+                              UPDATED_BY        NUMBER (10, 0),
+                              UPDATED_AT        TIMESTAMP (6)
+                              );
+/
+
+CREATE SEQUENCE ST_PROJECT_DOCS_SQ START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
+/
+
+CREATE OR REPLACE TRIGGER "ST_PROJECT_DOCS_BR_TRI" 
+BEFORE UPDATE OR INSERT OR DELETE
+ON ST_PROJECT_DOCS
+FOR EACH ROW
+BEGIN
+
+	IF INSERTING THEN
+		IF(:NEW.PRO_DOC_ID IS NULL) THEN
+			:NEW.PRO_DOC_ID := ST_PROJECT_DOCS_SQ.NEXTVAL;
+		END IF;
+		 :NEW.CREATED_BY := DFN_GET_INST_USER_ID (v('APP_USER'));
+		 :NEW.CREATED_AT := SYSDATE;
+         :NEW.STATUS := '1';
+	ELSIF UPDATING THEN
+		 :NEW.UPDATED_BY := DFN_GET_INST_USER_ID (v('APP_USER'));
+		 :NEW.UPDATED_AT := SYSDATE;
+	END IF;
+
+END;
+/
 
 
 
