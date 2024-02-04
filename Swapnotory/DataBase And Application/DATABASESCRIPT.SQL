@@ -1191,8 +1191,25 @@ end "EXPENSE_DOC",
 
 MEMBER_PICTURE
 
+   <img src="#APP_IMAGES#list_icon.png" height="20" width="25">&nbsp&nbspAdd Projects
 
 
+SELECT TO_CHAR(SYSDATE,'YYYY')+LEVEL  YEAR_DT, TO_CHAR(SYSDATE,'YYYY')+LEVEL  YEAR_RT
+FROM DUAL
+CONNECT BY LEVEL <= 10
+UNION ALL
+SELECT TO_CHAR(SYSDATE,'YYYY') +0 YEAR_DT, TO_CHAR(SYSDATE,'YYYY') +0 YEAR_RT
+FROM DUAL
+UNION ALL
+SELECT TO_CHAR(SYSDATE,'YYYY') -1 YEAR_DT, TO_CHAR(SYSDATE,'YYYY') +0 YEAR_RT
+FROM DUAL
+UNION ALL
+SELECT TO_CHAR(SYSDATE,'YYYY') -2 YEAR_DT, TO_CHAR(SYSDATE,'YYYY') +0 YEAR_RT
+FROM DUAL
+UNION ALL
+SELECT TO_CHAR(SYSDATE,'YYYY') -3 YEAR_DT, TO_CHAR(SYSDATE,'YYYY') +0 YEAR_RT
+FROM DUAL
+ORDER BY 1 ASC;
 
 
 */
@@ -2338,5 +2355,81 @@ RETURN vDATASET;
 END;
 */
 
+/*
+-- Create a new procedure in your Oracle APEX application:
+
+CREATE OR REPLACE PROCEDURE send_sms_api (
+    p_api_key     VARCHAR2,
+    p_phone_number VARCHAR2,
+    p_sender_id    VARCHAR2,
+    p_message      VARCHAR2
+) AS
+    l_url           VARCHAR2(4000);
+    l_request       VARCHAR2(32767);
+    l_response      CLOB;
+BEGIN
+    -- Construct the URL
+    l_url := 'http://bulksmsbd.net/api/smsapi?api_key=' || p_api_key ||
+             '&type=text&number=' || p_phone_number ||
+             '&senderid=' || p_sender_id ||
+             '&message=' || UTL_URL.escape(p_message, TRUE);
+
+    -- Construct the request
+    l_request := APEX_WEB_SERVICE.MAKE_REST_REQUEST(
+                    p_url => l_url,
+                    p_http_method => 'GET'
+                 );
+
+    -- Make the web service call
+    l_response := APEX_WEB_SERVICE.REST(p_request => l_request);
+
+    -- Handle the response if needed
+    -- You may want to log the response or parse it for error handling
+
+    COMMIT;
+EXCEPTION
+    WHEN OTHERS
+    THEN
+        -- Handle exceptions here
+        DBMS_OUTPUT.put_line ('Error: ' || SQLERRM);
+END send_sms_api;
+/
 
 
+-- Call the procedure with your parameters:
+
+BEGIN
+    send_sms_api(
+        p_api_key => 'YourAPIKey',
+        p_phone_number => 'ReceiverPhoneNumber',
+        p_sender_id => '8809617615235',
+        p_message => 'TestSMS'
+    );
+END;
+/
+
+
+ SELECT VM.MEMBER_NAME, VM.ACCOUNT_NO, VM.JOINING_DATE, VM.MEMBER_ADDRESS, VM.CONTACT_NO,  COL_DT.PREMIUM_COLLECTION, COL_DT.CHARITY_COLLECTION, (COL_DT.PREMIUM_COLLECTION + COL_DT.CHARITY_COLLECTION) COLL_AMT
+  FROM VV_MEMBER VM
+  LEFT JOIN 
+            (
+                SELECT MEMBER_ID, SUM(PREMIUM_COLLECTION) PREMIUM_COLLECTION, SUM(CHARITY_COLLECTION) CHARITY_COLLECTION
+                  FROM VV_DAILY_COLLECTION
+                  WHERE MEMBER_ID = :P31_MEMBER_ID
+                  GROUP BY MEMBER_ID
+            ) COL_DT ON COL_DT.MEMBER_ID = VM.MEMBER_ID
+ WHERE VM.MEMBER_ID = :P31_MEMBER_ID
+
+
+
+SELECT VDC.COLLECTION_ID, VDC.COLLECTION_DATE, VDC.PREMIUM_COLLECTION , VDC.CHARITY_COLLECTION , VDC.COLLECTION_AMOUT,
+      VDC.COLL_YEAR YEAR, ACE.ELEMENT_NAME MONTH
+FROM VV_DAILY_COLLECTION VDC
+LEFT JOIN ADM_CODE_ELEMENTS ACE ON ACE.ELEMENT_ID = VDC.COLL_MONTH
+WHERE VDC.MEMBER_ID = :P31_MEMBER_ID
+ORDER BY VDC.COLLECTION_DATE DESC;
+
+
+
+
+*/
