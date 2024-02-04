@@ -1,4 +1,4 @@
--- send sms mobile
+-- send sms mobile in oracle apex
 
 
 
@@ -60,7 +60,7 @@ BEGIN
 END;
 
 
---- production server impliment
+--- production server impliment / process
 
 BEGIN
     FOR I IN (
