@@ -2449,3 +2449,64 @@ ORDER BY VDC.COLLECTION_DATE DESC;
 
 
 */
+
+CREATE OR REPLACE PROCEDURE PD_ST_PREMIUM_COLLECTION(pIS_SINGLE_PREMIUM, pDATE_FROM, pDATE_TO, P8_COLLECTION_DATE, P8_EMP_ID, P8_COLLECTION_AMOUT, P8_MEMBER_ID, P8_INST_ID, P8_STATUS,
+                                                    P8_CREATED_BY,P8_CREATED_AT, P8_COLLECTION_MODE, P8_TRANSACTION_CODE, P8_BANK_ID, P8_BANK_ACCOUNT_NO, pCOLL_YEAR, pCOLL_MONTH,
+                                                    pDOC, P8_PREMIUM_COLLECTION, P8_CHARITY_COLLECTION )
+    vNO_OF_MONTH NUMBER;
+BEGIN
+     SELECT CEIL(MONTHS_BETWEEN(TO_DATE(:P8_DATE_TO, 'DD-MON-YYYY'), TO_DATE(:P8_DATE_FROM, 'DD-MON-YYYY'))) AS months_count
+            INTO vNO_OF_MONTH
+       FROM DUAL;
+
+       IF :P8_SINGLE_MONTH = 2 THEN
+
+            FOR J IN (
+                SELECT A.SRL_NO,A.MONTH_NAME, 
+                       CASE 
+                            WHEN TRIM(A.MONTH_NAME) ='JANUARY' THEN 55 
+                            WHEN TRIM(A.MONTH_NAME) ='FEBRUARY' THEN 56 
+                            WHEN TRIM(A.MONTH_NAME) ='MARCH' THEN 57 
+                            WHEN TRIM(A.MONTH_NAME) ='APRIL' THEN 58 
+                            WHEN TRIM(A.MONTH_NAME) ='MAY' THEN 59 
+                            WHEN TRIM(A.MONTH_NAME) ='JUNE' THEN 60 
+                            WHEN TRIM(A.MONTH_NAME) ='JULY' THEN 61 
+                            WHEN TRIM(A.MONTH_NAME) ='AUGUST' THEN 62 
+                            WHEN TRIM(A.MONTH_NAME) ='SEPTEMBER' THEN 63 
+                            WHEN TRIM(A.MONTH_NAME) ='OCTOBER' THEN 64 
+                            WHEN TRIM(A.MONTH_NAME) ='NOVEMBER' THEN 65 
+                            WHEN TRIM(A.MONTH_NAME) ='DECEMBER' THEN 66 
+                        ELSE 
+                        NULL 
+                        END MONTH_ID, A.YEAR_ID
+                FROM 
+                (
+                WITH DATE_RANGE AS (
+                  SELECT TO_DATE(:P8_DATE_FROM, 'DD-MON-YYYY') AS START_DATE,
+                         TO_DATE(:P8_DATE_TO, 'DD-MON-YYYY') AS END_DATE
+                  FROM DUAL
+                )
+                SELECT  ROWNUM AS SRL_NO, TO_CHAR(ADD_MONTHS(START_DATE, LEVEL - 1), 'MONTH') AS MONTH_NAME, 
+                        TO_NUMBER(TO_CHAR(ADD_MONTHS(START_DATE, LEVEL - 1), 'YYYY')) AS YEAR_ID
+                FROM DATE_RANGE
+                CONNECT BY LEVEL <= MONTHS_BETWEEN(END_DATE, START_DATE) + 1
+                ) A
+            ) LOOP
+            
+                FOR K IN 1..vNO_OF_MONTH LOOP
+                    
+                    INSERT INTO VV_DAILY_COLLECTION (COLLECTION_ID, COLLECTION_DATE, EMP_ID, COLLECTION_AMOUT, MEMBER_ID, INST_ID, STATUS, CREATED_BY, CREATED_AT,
+                                COLLECTION_MODE, IS_POST, IS_CLOSING, TRANSACTION_CODE, BANK_ID, BANK_ACCOUNT_NO, COLL_YEAR, COLL_MONTH, PREMIUM_DOC, 
+                                PREMIUM_COLLECTION, CHARITY_COLLECTION, DATE_FROM, DATE_TO
+                    )
+                    VALUES (VV_DAILY_COLL_SQ.NEXTVAL, :P8_COLLECTION_DATE, :P8_EMP_ID, :P8_COLLECTION_AMOUT, :P8_MEMBER_ID, :P8_INST_ID, :P8_STATUS, :P8_CREATED_BY, :P8_CREATED_AT,
+                            :P8_COLLECTION_MODE, 'S', 'N', :P8_TRANSACTION_CODE, :P8_BANK_ID, :P8_BANK_ACCOUNT_NO, J.YEAR_ID, J.MONTH_ID, NULL,
+                            :P8_PREMIUM_COLLECTION, :P8_CHARITY_COLLECTION, :P8_DATE_FROM, :P8_DATE_TO);
+                
+                END LOOP;
+
+            END LOOP;
+
+        END IF;
+
+END;
