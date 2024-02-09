@@ -2544,6 +2544,7 @@ SELECT A.SRL_NO, A.MONTH_NAME,
         pMSG := '{"response_code":400,"message":"'||SQLERRM||'"}';
         
     END PD_ST_PREMIUM_COLLECTION;
+/
 
 
 DECLARE
@@ -2596,7 +2597,7 @@ BEGIN
 END;
 /
 
-SELECT * FROM GET_MONTHS_LIST1('01012024','31032024','ddmmrr')
+--SELECT * FROM GET_MONTHS_LIST1('01012024','31032024','ddmmrr')
 ----- JERP PROD
 
 
@@ -2622,7 +2623,7 @@ IS
 BEGIN
 
     FOR I IN (
-                SELECT  A.*, ROWNUM RID
+                SELECT  ROWNUM RID, A.MNTH, A.MNYRID, DECODE (A.MN,1,55,2,56,3,57,4,58,5,59,6,60,7,61,8,62,9,63,10,64,11,65,12,66,'') MN,  A.YR
                   FROM (SELECT DISTINCT
                                TO_CHAR (ADD_MONTHS (pDATE_FROM, LEVEL - 1), pFORMAT) MNTH,
                                TO_NUMBER (TO_CHAR (ADD_MONTHS (pDATE_FROM, LEVEL - 1), 'RRMM')) MNYRID,
@@ -2643,5 +2644,5 @@ END GET_MONTH_YEAR_LIST;
 
 -- CALLING
 
-SELECT * FROM GET_MONTH_YEAR_LIST('01-JAN-2024','31-MAY-2024','ddmmrr')
+-- SELECT * FROM GET_MONTH_YEAR_LIST('01-JAN-2024','31-MAY-2024','ddmmrr')
 
