@@ -2450,63 +2450,148 @@ ORDER BY VDC.COLLECTION_DATE DESC;
 
 */
 
-CREATE OR REPLACE PROCEDURE PD_ST_PREMIUM_COLLECTION(pIS_SINGLE_PREMIUM, pDATE_FROM, pDATE_TO, P8_COLLECTION_DATE, P8_EMP_ID, P8_COLLECTION_AMOUT, P8_MEMBER_ID, P8_INST_ID, P8_STATUS,
-                                                    P8_CREATED_BY,P8_CREATED_AT, P8_COLLECTION_MODE, P8_TRANSACTION_CODE, P8_BANK_ID, P8_BANK_ACCOUNT_NO, pCOLL_YEAR, pCOLL_MONTH,
-                                                    pDOC, P8_PREMIUM_COLLECTION, P8_CHARITY_COLLECTION )
-    vNO_OF_MONTH NUMBER;
-BEGIN
-     SELECT CEIL(MONTHS_BETWEEN(TO_DATE(:P8_DATE_TO, 'DD-MON-YYYY'), TO_DATE(:P8_DATE_FROM, 'DD-MON-YYYY'))) AS months_count
-            INTO vNO_OF_MONTH
-       FROM DUAL;
+CREATE OR REPLACE 
+    PROCEDURE PD_ST_PREMIUM_COLLECTION (
+                                        pIS_SINGLE_PREMIUM    NUMBER,
+                                        pDATE_FROM            VARCHAR2,
+                                        pDATE_TO              VARCHAR2,
+                                        pCOLLECTION_DATE      DATE,
+                                        pEMP_ID               NUMBER,
+                                        pCOLLECTION_AMOUT     NUMBER,
+                                        pMEMBER_ID            NUMBER,
+                                        pINST_ID              NUMBER,
+                                        pSTATUS               VARCHAR2,
+                                        pCREATED_BY           NUMBER,
+                                        pCREATED_AT           DATE,
+                                        pCOLLECTION_MODE      NUMBER,
+                                        pTRANSACTION_CODE     VARCHAR2,
+                                        pBANK_ID              NUMBER,
+                                        pBANK_ACCOUNT_NO      NUMBER,
+                                        pCOLL_YEAR            NUMBER DEFAULT NULL,
+                                        pCOLL_MONTH           NUMBER DEFAULT NULL,
+                                        pDOC                  BLOB DEFAULT NULL,
+                                        pPREMIUM_COLLECTION   NUMBER,
+                                        pCHARITY_COLLECTION   NUMBER,
+                                        pMSG OUT VARCHAR2 
+                                        )
+    IS
+        vNO_OF_MONTH   NUMBER;
+    BEGIN
+        SELECT CEIL (
+                   MONTHS_BETWEEN (TO_DATE ( pDATE_TO, 'DD-MON-YYYY'),
+                                   TO_DATE ( pDATE_FROM, 'DD-MON-YYYY')))    AS months_count
+          INTO vNO_OF_MONTH
+          FROM DUAL;
 
-       IF :P8_SINGLE_MONTH = 2 THEN
+        IF pIS_SINGLE_PREMIUM = 2 THEN
+            FOR J IN (SELECT SRL_NO, MONTH_NAME, TO_NUMBER(TRIM(MONTH_ID)) MONTH_ID, TO_NUMBER(TRIM(YEAR_ID)) YEAR_ID
+FROM
+(
+SELECT A.SRL_NO, A.MONTH_NAME,
+                           CASE
+                               WHEN TRIM (A.MONTH_NAME) = 'JANUARY' THEN 55
+                               WHEN TRIM (A.MONTH_NAME) = 'FEBRUARY' THEN 56
+                               WHEN TRIM (A.MONTH_NAME) = 'MARCH' THEN 57
+                               WHEN TRIM (A.MONTH_NAME) = 'APRIL' THEN 58
+                               WHEN TRIM (A.MONTH_NAME) = 'MAY' THEN 59
+                               WHEN TRIM (A.MONTH_NAME) = 'JUNE' THEN 60
+                               WHEN TRIM (A.MONTH_NAME) = 'JULY' THEN 61
+                               WHEN TRIM (A.MONTH_NAME) = 'AUGUST' THEN 62
+                               WHEN TRIM (A.MONTH_NAME) = 'SEPTEMBER' THEN 63
+                               WHEN TRIM (A.MONTH_NAME) = 'OCTOBER' THEN 64
+                               WHEN TRIM (A.MONTH_NAME) = 'NOVEMBER' THEN 65
+                               WHEN TRIM (A.MONTH_NAME) = 'DECEMBER' THEN 66
+                               ELSE NULL
+                           END    MONTH_ID,
+                           A.YEAR_ID
+                      FROM (WITH DATE_RANGE
+                                AS
+                                (SELECT TO_DATE (pDATE_FROM, 'DD-MON-YYYY') AS START_DATE,
+                                        TO_DATE (pDATE_TO, 'DD-MON-YYYY') AS END_DATE
+                                   FROM DUAL
+                                 )
+                                SELECT ROWNUM AS SRL_NO, TO_CHAR (ADD_MONTHS (START_DATE, LEVEL - 1), 'MONTH')    AS MONTH_NAME,
+                                       TO_NUMBER (TO_CHAR (ADD_MONTHS (START_DATE, LEVEL - 1), 'YYYY'))     AS YEAR_ID
+                                  FROM DATE_RANGE
+                            CONNECT BY LEVEL <= MONTHS_BETWEEN (END_DATE, START_DATE) + 1)
+                           A
+))
+            LOOP
+                --FOR K IN 1..vNO_OF_MONTH LOOP
 
-            FOR J IN (
-                SELECT A.SRL_NO,A.MONTH_NAME, 
-                       CASE 
-                            WHEN TRIM(A.MONTH_NAME) ='JANUARY' THEN 55 
-                            WHEN TRIM(A.MONTH_NAME) ='FEBRUARY' THEN 56 
-                            WHEN TRIM(A.MONTH_NAME) ='MARCH' THEN 57 
-                            WHEN TRIM(A.MONTH_NAME) ='APRIL' THEN 58 
-                            WHEN TRIM(A.MONTH_NAME) ='MAY' THEN 59 
-                            WHEN TRIM(A.MONTH_NAME) ='JUNE' THEN 60 
-                            WHEN TRIM(A.MONTH_NAME) ='JULY' THEN 61 
-                            WHEN TRIM(A.MONTH_NAME) ='AUGUST' THEN 62 
-                            WHEN TRIM(A.MONTH_NAME) ='SEPTEMBER' THEN 63 
-                            WHEN TRIM(A.MONTH_NAME) ='OCTOBER' THEN 64 
-                            WHEN TRIM(A.MONTH_NAME) ='NOVEMBER' THEN 65 
-                            WHEN TRIM(A.MONTH_NAME) ='DECEMBER' THEN 66 
-                        ELSE 
-                        NULL 
-                        END MONTH_ID, A.YEAR_ID
-                FROM 
-                (
-                WITH DATE_RANGE AS (
-                  SELECT TO_DATE(:P8_DATE_FROM, 'DD-MON-YYYY') AS START_DATE,
-                         TO_DATE(:P8_DATE_TO, 'DD-MON-YYYY') AS END_DATE
-                  FROM DUAL
-                )
-                SELECT  ROWNUM AS SRL_NO, TO_CHAR(ADD_MONTHS(START_DATE, LEVEL - 1), 'MONTH') AS MONTH_NAME, 
-                        TO_NUMBER(TO_CHAR(ADD_MONTHS(START_DATE, LEVEL - 1), 'YYYY')) AS YEAR_ID
-                FROM DATE_RANGE
-                CONNECT BY LEVEL <= MONTHS_BETWEEN(END_DATE, START_DATE) + 1
-                ) A
-            ) LOOP
-            
-                FOR K IN 1..vNO_OF_MONTH LOOP
-                    
-                    INSERT INTO VV_DAILY_COLLECTION (COLLECTION_ID, COLLECTION_DATE, EMP_ID, COLLECTION_AMOUT, MEMBER_ID, INST_ID, STATUS, CREATED_BY, CREATED_AT,
-                                COLLECTION_MODE, IS_POST, IS_CLOSING, TRANSACTION_CODE, BANK_ID, BANK_ACCOUNT_NO, COLL_YEAR, COLL_MONTH, PREMIUM_DOC, 
-                                PREMIUM_COLLECTION, CHARITY_COLLECTION, DATE_FROM, DATE_TO
-                    )
-                    VALUES (VV_DAILY_COLL_SQ.NEXTVAL, :P8_COLLECTION_DATE, :P8_EMP_ID, :P8_COLLECTION_AMOUT, :P8_MEMBER_ID, :P8_INST_ID, :P8_STATUS, :P8_CREATED_BY, :P8_CREATED_AT,
-                            :P8_COLLECTION_MODE, 'S', 'N', :P8_TRANSACTION_CODE, :P8_BANK_ID, :P8_BANK_ACCOUNT_NO, J.YEAR_ID, J.MONTH_ID, NULL,
-                            :P8_PREMIUM_COLLECTION, :P8_CHARITY_COLLECTION, :P8_DATE_FROM, :P8_DATE_TO);
-                
-                END LOOP;
+                INSERT INTO VV_DAILY_COLLECTION (COLLECTION_ID, COLLECTION_DATE, EMP_ID, COLLECTION_AMOUT, MEMBER_ID,
+                                                 INST_ID, STATUS, CREATED_BY, CREATED_AT, COLLECTION_MODE, IS_POST,
+                                                 IS_CLOSING, TRANSACTION_CODE, BANK_ID, BANK_ACCOUNT_NO, COLL_YEAR,
+                                                 COLL_MONTH, PREMIUM_DOC, PREMIUM_COLLECTION, CHARITY_COLLECTION,
+                                                 DATE_FROM, DATE_TO)
+                                         VALUES (VV_DAILY_COLL_SQ.NEXTVAL, pCOLLECTION_DATE, pEMP_ID, pCOLLECTION_AMOUT, pMEMBER_ID,
+                                                 pINST_ID, pSTATUS, pCREATED_BY, pCREATED_AT, pCOLLECTION_MODE, 'S',
+                                                 'N', pTRANSACTION_CODE, pBANK_ID, pBANK_ACCOUNT_NO, J.YEAR_ID,
+                                                 J.MONTH_ID, pDOC, pPREMIUM_COLLECTION, pCHARITY_COLLECTION,
+                                                 pDATE_FROM, pDATE_TO);
+            --END LOOP;
 
             END LOOP;
-
+            
         END IF;
+        
+        pMSG := '{"response_code":200,"message":"Premium Saved Succefully..."}';
+        
+    EXCEPTION
+        WHEN OTHERS  THEN
+        
+        pMSG := '{"response_code":400,"message":"'||SQLERRM||'"}';
+        
+    END PD_ST_PREMIUM_COLLECTION;
 
+
+
+DECLARE
+    vIS_SINGLE_PREMIUM   NUMBER := 2;
+    vDATE_FROM           VARCHAR2(30) := '01-JAN-2024';
+    vDATE_TO             VARCHAR2(30) := '31-JAN-2024';
+    vCOLLECTION_DATE     DATE := SYSDATE;
+    vEMP_ID              NUMBER := 100; -- example value
+    vCOLLECTION_AMOUT    NUMBER := 2100; -- example value
+    vMEMBER_ID           NUMBER := 330; -- example value
+    vINST_ID             NUMBER := 1000; -- example value
+    vSTATUS              VARCHAR2(20) := '1';
+    vCREATED_BY          NUMBER := 100; -- example value
+    vCREATED_AT          DATE := SYSDATE;
+    vCOLLECTION_MODE     NUMBER := 55; -- example value
+    vTRANSACTION_CODE    VARCHAR2(20) := '999999';
+    vBANK_ID             NUMBER := 1001; -- example value
+    vBANK_ACCOUNT_NO     NUMBER := 1234789; -- example value
+    vCOLL_YEAR           NUMBER := NULL; -- example value
+    vCOLL_MONTH          NUMBER := NULL; -- example value
+    vDOC                 BLOB := NULL; -- example value
+    vPREMIUM_COLLECTION  NUMBER := 2000; -- example value
+    vCHARITY_COLLECTION  NUMBER := 100; -- example value
+    vMSG                 VARCHAR2(200);
+BEGIN
+    PD_ST_PREMIUM_COLLECTION(
+        vIS_SINGLE_PREMIUM,
+        vDATE_FROM,
+        vDATE_TO,
+        vCOLLECTION_DATE,
+        vEMP_ID,
+        vCOLLECTION_AMOUT,
+        vMEMBER_ID,
+        vINST_ID,
+        vSTATUS,
+        vCREATED_BY,
+        vCREATED_AT,
+        vCOLLECTION_MODE,
+        vTRANSACTION_CODE,
+        vBANK_ID,
+        vBANK_ACCOUNT_NO,
+        vCOLL_YEAR,
+        vCOLL_MONTH,
+        vDOC,
+        vPREMIUM_COLLECTION,
+        vCHARITY_COLLECTION,
+        vMSG
+    );
+    DBMS_OUTPUT.PUT_LINE('Message: ' || vMSG);
 END;
+/
