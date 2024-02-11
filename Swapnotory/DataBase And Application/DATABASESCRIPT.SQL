@@ -2644,5 +2644,6 @@ END GET_MONTH_YEAR_LIST;
 
 -- CALLING
 
--- SELECT * FROM GET_MONTH_YEAR_LIST('01-JAN-2024','31-MAY-2024','ddmmrr')
+-- SELECT * FROM GET_MONTH_YEAR_LIST(to_date('01-JAN-2024','dd-mon-rrrr'),to_date('30-MAY-2024','dd-mon-rrrr'),'DDMMRRRR')
+
 
