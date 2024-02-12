@@ -2646,4 +2646,122 @@ END GET_MONTH_YEAR_LIST;
 
 -- SELECT * FROM GET_MONTH_YEAR_LIST(to_date('01-JAN-2024','dd-mon-rrrr'),to_date('30-MAY-2024','dd-mon-rrrr'),'DDMMRRRR')
 
+CREATE OR REPLACE PROCEDURE PD_ST_PREMIUM_COLLECTION (
+                                        pIS_SINGLE_PREMIUM    NUMBER,
+                                        pDATE_FROM            DATE,
+                                        pDATE_TO              DATE,
+                                        pCOLLECTION_DATE      DATE,
+                                        pEMP_ID               NUMBER,
+                                        pCOLLECTION_AMOUT     NUMBER,
+                                        pMEMBER_ID            NUMBER,
+                                        pINST_ID              NUMBER,
+                                        pSTATUS               VARCHAR2,
+                                        pCREATED_BY           NUMBER,
+                                        pCREATED_AT           DATE,
+                                        pCOLLECTION_MODE      NUMBER,
+                                        pTRANSACTION_CODE     VARCHAR2,
+                                        pBANK_ID              NUMBER,
+                                        pBANK_ACCOUNT_NO      NUMBER,
+                                        pCOLL_YEAR            NUMBER DEFAULT NULL,
+                                        pCOLL_MONTH           NUMBER DEFAULT NULL,
+                                        pDOC                  BLOB DEFAULT NULL,
+                                        pPREMIUM_COLLECTION   NUMBER,
+                                        pCHARITY_COLLECTION   NUMBER,
+                                        pMSG OUT VARCHAR2 
+                                        )
+    IS
+        vNO_OF_MONTH   NUMBER;
+        L_BLOB         BLOB;
+    BEGIN
+
+        IF pIS_SINGLE_PREMIUM = 2 THEN 
+                INSERT INTO VV_DAILY_COLLECTION (COLLECTION_ID, COLLECTION_DATE, EMP_ID, COLLECTION_AMOUT, MEMBER_ID,
+                                                 INST_ID, STATUS, CREATED_BY, CREATED_AT, COLLECTION_MODE, IS_POST,
+                                                 IS_CLOSING, TRANSACTION_CODE, BANK_ID, BANK_ACCOUNT_NO, COLL_YEAR,
+                                                 COLL_MONTH, PREMIUM_DOC, PREMIUM_COLLECTION, CHARITY_COLLECTION,
+                                                 DATE_FROM, DATE_TO)
+                                         VALUES (VV_DAILY_COLL_SQ.NEXTVAL, pCOLLECTION_DATE, pEMP_ID, pCOLLECTION_AMOUT, pMEMBER_ID,
+                                                 pINST_ID, pSTATUS, pCREATED_BY, pCREATED_AT, pCOLLECTION_MODE, 'S',
+                                                 'N', pTRANSACTION_CODE, pBANK_ID, pBANK_ACCOUNT_NO, pCOLL_YEAR,
+                                                 pCOLL_MONTH, pDOC, pPREMIUM_COLLECTION, pCHARITY_COLLECTION,
+                                                 pDATE_FROM, pDATE_TO);
+        ELSE 
+            
+            INSERT INTO VV_DAILY_COLLECTION (COLLECTION_ID, COLLECTION_DATE, EMP_ID, COLLECTION_AMOUT, MEMBER_ID,
+                                                 INST_ID, STATUS, CREATED_BY, CREATED_AT, COLLECTION_MODE, IS_POST,
+                                                 IS_CLOSING, TRANSACTION_CODE, BANK_ID, BANK_ACCOUNT_NO, COLL_YEAR,
+                                                 COLL_MONTH, PREMIUM_DOC, PREMIUM_COLLECTION, CHARITY_COLLECTION,
+                                                 DATE_FROM, DATE_TO)
+                                         VALUES (VV_DAILY_COLL_SQ.NEXTVAL, pCOLLECTION_DATE, pEMP_ID, pCOLLECTION_AMOUT, pMEMBER_ID,
+                                                 pINST_ID, pSTATUS, pCREATED_BY, pCREATED_AT, pCOLLECTION_MODE, 'S',
+                                                 'N', pTRANSACTION_CODE, pBANK_ID, pBANK_ACCOUNT_NO, pCOLL_YEAR,
+                                                 pCOLL_MONTH, pDOC, pPREMIUM_COLLECTION, pCHARITY_COLLECTION,
+                                                 pDATE_FROM, pDATE_TO);
+            
+        END IF;
+        
+        pMSG := '{"response_code":200,"message":"Premium Saved Succefully..."}';
+        
+    EXCEPTION
+        WHEN OTHERS  THEN
+        
+        pMSG := '{"response_code":400,"message":"'||SQLERRM||'"}';
+        
+    END PD_ST_PREMIUM_COLLECTION;
+/
+
+/*
+
+-- PROCESS (CALLING PROCEDURE)
+
+DECLARE
+    vSTATUS VARCHAR2(1000);
+    vDATE1  DATE := TO_DATE(:P8_DATE_FROM,'DD-MON-RRRR');
+    vDATE2  DATE := TO_DATE(:P8_DATE_TO,'DD-MON-RRRR');
+    --vFILE_DT BLOB := TO_BLOB(:P8_PREMIUM_DOC);
+    vFST_DAY DATE := TRUNC(TO_DATE(:P8_SET_MONTH_SL||'-'||:P8_COLL_YEAR,'MM-RRRR'),'MM');
+    vLST_DAY DATE := LAST_DAY(TRUNC(TO_DATE(:P8_SET_MONTH_SL||'-'||:P8_COLL_YEAR,'MM-RRRR'),'MM'));
+    l_blob      BLOB;
+BEGIN
+    -- MANUALLY SAVE BLOB FILES
+    Dbms_Lob.Createtemporary(Lob_Loc => l_blob, Cache => TRUE, Dur => Dbms_Lob.Call); 
+
+    SELECT blob_content
+      INTO l_blob
+    FROM apex_application_temp_files
+    WHERE NAME = :P8_PREMIUM_DOC; 
+
+   -- l_blob := to_blob(:P8_PREMIUM_DOC);
+
+    IF :P8_SINGLE_MONTH = 2 THEN
+
+        FOR I IN (
+            SELECT A.*, TO_DATE(A.MNYR_DISP,'DD-MON-RRRR')  AS FIRST_DAY, LAST_DAY(TO_DATE(A.MNYR_DISP,'DD-MON-RRRR'))  AS LAST_DAY_MON
+            FROM (
+                SELECT * FROM GET_MONTH_YEAR_LIST(vDATE1,vDATE2,'DD-MON-RRRR')
+                ) A
+            ) LOOP
+
+             PD_ST_PREMIUM_COLLECTION (:P8_SINGLE_MONTH, I.FIRST_DAY, I.LAST_DAY_MON,:P8_COLLECTION_DATE, :P8_EMP_ID ,:P8_COLLECTION_AMOUT ,:P8_MEMBER_ID , :P8_INST_ID,
+                                       :P8_STATUS,:P8_CREATED_BY,:P8_CREATED_AT ,:P8_COLLECTION_MODE, :P8_TRANSACTION_CODE,:P8_BANK_ID,:P8_BANK_ACCOUNT_NO,
+                                       I.YR , I.MN, l_blob,:P8_PREMIUM_COLLECTION, :P8_CHARITY_COLLECTION, vSTATUS
+                                      );
+
+        END LOOP;
+        
+    ELSE
+
+             PD_ST_PREMIUM_COLLECTION (:P8_SINGLE_MONTH, vFST_DAY, vLST_DAY, :P8_COLLECTION_DATE, :P8_EMP_ID ,:P8_COLLECTION_AMOUT ,:P8_MEMBER_ID , :P8_INST_ID,
+                                    :P8_STATUS,:P8_CREATED_BY,:P8_CREATED_AT ,:P8_COLLECTION_MODE, :P8_TRANSACTION_CODE,:P8_BANK_ID,:P8_BANK_ACCOUNT_NO,
+                                    :P8_COLL_YEAR , :P8_COLL_MONTH, l_blob,:P8_PREMIUM_COLLECTION, :P8_CHARITY_COLLECTION, vSTATUS
+                                   );
+
+    END IF;
+
+END;
+
+
+
+
+*/
 
