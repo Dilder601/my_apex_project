@@ -1970,14 +1970,15 @@ END;
 
 
 
-
-CREATE TABLE TABLE ADM_ASSET (ASSET_ID NUMBER PRIMARY KEY, 
+CREATE TABLE ADM_ASSET (ASSET_ID NUMBER PRIMARY KEY, 
                         ASSET_DATE DATE,
                         ASSET_CATEGORY NUMBER,
                         ASSET_NAME VARCHAR2(100),
                         ASSET_DESCRIPTION VARCHAR2(200),  
                         MONTH_ID NUMBER,
                         YEAR_ID  NUMBER,
+                        DR_AMT   NUMBER,
+                        CR_AMT   NUMBER,
                         STATUS VARCHAR2(10) DEFAULT '1' NOT NULL ENABLE, 
                         CREATED_BY NUMBER(10,0) NOT NULL ENABLE, 
                         CREATED_AT TIMESTAMP (6) DEFAULT SYSDATE NOT NULL ENABLE, 
@@ -2016,6 +2017,8 @@ CREATE TABLE ADM_LIABILITIES (LIABILITIES_ID NUMBER PRIMARY KEY,
                         LIABILITIES_DESCRIPTION VARCHAR2(200),  
                         MONTH_ID NUMBER,
                         YEAR_ID  NUMBER,
+                        DR_AMT   NUMBER,
+                        CR_AMT   NUMBER,
                         STATUS VARCHAR2(10) DEFAULT '1' NOT NULL ENABLE, 
                         CREATED_BY NUMBER(10,0) NOT NULL ENABLE, 
                         CREATED_AT TIMESTAMP (6) DEFAULT SYSDATE NOT NULL ENABLE, 
@@ -2044,5 +2047,4 @@ BEGIN
 	END IF;
 END;
 /
-
 
